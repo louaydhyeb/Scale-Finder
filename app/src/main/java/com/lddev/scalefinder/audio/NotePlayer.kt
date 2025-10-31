@@ -3,11 +3,18 @@ package com.lddev.scalefinder.audio
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 
 class NotePlayer {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val sampleRate = 44100
 
     fun playNote(frequencyHz: Double, durationMs: Int = 500, volume: Float = 0.8f) {
@@ -104,11 +111,13 @@ class NotePlayer {
             AudioTrack.MODE_STATIC
         )
 
-        track.write(buffer, 0, buffer.size)
-        track.play()
-        Thread.sleep(durationMs.toLong())
-        track.stop()
-        track.release()
+        scope.launch {
+            track.write(buffer, 0, buffer.size)
+            track.play()
+            delay(durationMs.toLong())
+            track.stop()
+            track.release()
+        }
     }
 
     /**
@@ -169,6 +178,8 @@ class NotePlayer {
         
         track.write(buffer, 0, buffer.size)
         track.play()
+
+
         Thread.sleep(durationMs.toLong())
         track.stop()
         track.release()
