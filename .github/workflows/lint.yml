@@ -1,0 +1,56 @@
+name: Lint Check
+
+# Runs lint checks separately (faster feedback)
+# Useful to run on every push
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    # Run lint check
+    - name: Run lint
+      run: ./gradlew lint
+    
+    # Upload lint results
+    - name: Upload lint results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lint-results
+        path: app/build/reports/lint-results*.html
+        retention-days: 7
+
