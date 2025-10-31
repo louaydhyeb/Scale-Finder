@@ -26,6 +26,9 @@ import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.roundToInt
 
@@ -64,16 +67,25 @@ fun GuitarFretboard(
             .onSizeChanged { boxSize = it }
             .semantics { contentDescription = "Guitar fretboard" }
             .pointerInput(tuning, scale, fretStart, fretCount, invertStrings) {
-                detectTapGestures { pos ->
-                    if (boxSize.width == 0 || boxSize.height == 0) return@detectTapGestures
+                awaitEachGesture {
+                    val down = awaitFirstDown() // Trigger immediately when finger touches
+                    if (boxSize.width == 0 || boxSize.height == 0) return@awaitEachGesture
+
                     val stringSpacing = boxSize.height / (strings.size + 1f)
                     val fretSpacing = boxSize.width / (fretCount + 1f)
-                    val visualIndex = ((pos.y / stringSpacing) - 1f).roundToInt().coerceIn(0, strings.lastIndex)
+
+                    val visualIndex = ((down.position.y / stringSpacing) - 1f)
+                        .roundToInt()
+                        .coerceIn(0, strings.lastIndex)
+
                     val dataIndex = if (invertStrings) (strings.lastIndex - visualIndex) else visualIndex
-                    val f = ((pos.x / fretSpacing) - 0.5f).roundToInt() + fretStart
+                    val f = ((down.position.x / fretSpacing) - 0.5f).roundToInt() + fretStart
                     val fret = f.coerceIn(fretStart, fretStart + fretCount)
                     val note = Note.fromSemitone(strings[dataIndex].semitone + fret)
+
                     onNoteTapped(dataIndex, fret, note)
+                    // You can optionally wait for release:
+                    waitForUpOrCancellation()
                 }
             }
     ) {
