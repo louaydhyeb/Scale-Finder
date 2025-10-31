@@ -56,6 +56,10 @@ android {
         warningsAsErrors = true
         abortOnError = true
         checkReleaseBuilds = true
+        // Disable library version checks
+        disable += "GradleDependency"
+        disable += "AndroidGradlePluginVersion"
+        disable += "NewerVersionAvailable"
     }
 }
 

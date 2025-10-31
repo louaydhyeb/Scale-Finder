@@ -13,8 +13,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.ScaleFinder"
-            android:screenOrientation="landscape">
+            android:theme="@style/Theme.ScaleFinder">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
