@@ -39,6 +39,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Use debug signing for CI builds (automatically created)
+            // For production Play Store releases, configure proper signing
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -50,6 +53,16 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "**/attach_hotspot_windows.dll"
+            excludes += "META-INF/licenses/**"
+            excludes += "META-INF/AL2.0"
+            excludes += "META-INF/LGPL2.1"
+        }
     }
 
     lint {

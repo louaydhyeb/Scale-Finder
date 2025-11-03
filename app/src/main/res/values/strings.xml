@@ -1,3 +1,85 @@
 <resources>
     <string name="app_name">Scale Finder</string>
+    
+    <!-- App Title -->
+    <string name="app_title_scale">Scale</string>
+    <string name="app_title_finder">Finder</string>
+    
+    <!-- Settings Menu -->
+    <string name="settings">Settings</string>
+    <string name="theme_light">Light Theme</string>
+    <string name="theme_dark">Dark Theme</string>
+    <string name="tuning">Tuning</string>
+    <string name="contrast_high">High Contrast</string>
+    <string name="contrast_normal">Normal Contrast</string>
+    <string name="fretboard_inverted">Inverted Fretboard</string>
+    <string name="fretboard_normal">Normal Fretboard</string>
+    <string name="note_names_show">Show Note Names</string>
+    <string name="note_names_hide">Hide Note Names</string>
+    
+    <!-- Fretboard -->
+    <string name="fretboard">Fretboard</string>
+    <string name="tuning_label">Tuning: %1$s</string>
+    <string name="scale_label">Scale: %1$s</string>
+    <string name="scale_none">None</string>
+    <string name="start_fret">Start Fret</string>
+    <string name="fret_count">Fret Count</string>
+    
+    <!-- Chord Progression -->
+    <string name="chord_progression">Chord Progression</string>
+    <string name="add_chord">Add Chord</string>
+    <string name="root">Root</string>
+    <string name="quality">Quality</string>
+    <string name="move_left">Move left</string>
+    <string name="move_right">Move right</string>
+    <string name="select_chord">Select</string>
+    <string name="remove_chord">Remove</string>
+    <string name="play_arpeggio">Play arpeggio</string>
+    
+    <!-- Scale Suggestions -->
+    <string name="scale_suggestions">Scale Suggestions</string>
+    <string name="add_chords_to_see_suggestions">Add chords to see suggestions.</string>
+    <string name="show_on_neck">Show on Neck</string>
+    
+    <!-- Presets -->
+    <string name="quick_presets">Quick Presets</string>
+    <string name="preset_pop_progression">I–V–vi–IV</string>
+    <string name="preset_pop_description">Pop progression</string>
+    <string name="preset_jazz_progression">ii–V–I</string>
+    <string name="preset_jazz_description">Jazz progression</string>
+    <string name="preset_blues">Blues</string>
+    <string name="preset_blues_description">12-bar blues</string>
+    <string name="preset_standard">Standard</string>
+    <string name="preset_standard_description">E Standard tuning</string>
+    <string name="preset_drop_d">Drop D</string>
+    <string name="preset_drop_d_description">Drop D tuning</string>
+    <string name="preset_frets_0_12">Frets 0–12</string>
+    <string name="preset_frets_0_12_description">Full range</string>
+    <string name="preset_box_5">Box @5</string>
+    <string name="preset_box_5_description">Position 5</string>
+    
+    <!-- Metronome -->
+    <string name="metronome_pause">Pause metronome</string>
+    <string name="metronome_start">Start metronome</string>
+    <string name="metronome_pause_label">Pause</string>
+    <string name="metronome_play_label">Play</string>
+    <string name="metronome_collapse">Collapse metronome</string>
+    <string name="metronome_expand">Expand metronome</string>
+    <string name="metronome_collapse_label">Collapse</string>
+    <string name="metronome_expand_label">Expand</string>
+    <string name="bpm">BPM</string>
+    <string name="time_signature">Time Signature</string>
+    
+    <!-- Stepper -->
+    <string name="decrease">Decrease</string>
+    <string name="increase">Increase</string>
+    
+    <!-- Content Descriptions -->
+    <string name="content_fretboard_card">Fretboard card</string>
+    <string name="content_settings_menu">Settings menu</string>
+    <string name="content_tuning_menu">Tuning menu</string>
+    <string name="content_root_selector">Root selector</string>
+    <string name="content_quality_selector">Quality selector</string>
+    <string name="content_add_chord">Add chord</string>
+    <string name="content_show_scale_on_neck">Show scale on neck</string>
 </resources>
