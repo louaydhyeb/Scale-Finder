@@ -49,7 +49,22 @@ jobs:
     
     # Build the release APK
     - name: Build release APK
-      run: ./gradlew assembleRelease
+      run: ./gradlew assembleRelease --stacktrace --info
+      continue-on-error: false
+    
+    # Verify APK was created
+    - name: Verify APK exists
+      run: |
+        if [ ! -f "app/build/outputs/apk/release/app-release.apk" ]; then
+          echo "Error: Release APK not found!"
+          echo "Checking build outputs..."
+          ls -la app/build/outputs/apk/release/ || echo "Release directory does not exist"
+          ls -la app/build/outputs/apk/ || echo "APK directory does not exist"
+          exit 1
+        else
+          echo "✓ Release APK found"
+          ls -lh app/build/outputs/apk/release/app-release.apk
+        fi
     
     # Upload APK to the release (attaches it to GitHub release)
     - name: Upload Release APK
@@ -70,3 +85,4 @@ jobs:
         name: release-apk-${{ github.event.release.tag_name || inputs.tag_name }}
         path: app/build/outputs/apk/release/app-release.apk
         retention-days: 30
+        if-no-files-found: error

@@ -1,7 +1,17 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+// Load version from version.properties
+val versionPropsFile = file("version.properties")
+val versionProps = Properties()
+if (versionPropsFile.exists()) {
+    versionProps.load(FileInputStream(versionPropsFile))
 }
 
 android {
@@ -14,8 +24,8 @@ android {
         applicationId = "com.lddev.scalefinder"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (versionProps["versionCode"] as String? ?: "1").toInt()
+        versionName = versionProps["versionName"] as String? ?: "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,7 +39,7 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
-        
+
         release {
             // Release build type for Play Store
             isMinifyEnabled = true
@@ -39,8 +49,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Use debug signing for CI builds (automatically created)
+            // For production Play Store releases, configure proper signing
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -50,6 +64,16 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "**/attach_hotspot_windows.dll"
+            excludes += "META-INF/licenses/**"
+            excludes += "META-INF/AL2.0"
+            excludes += "META-INF/LGPL2.1"
+        }
     }
 
     lint {
@@ -66,7 +90,7 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-        implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

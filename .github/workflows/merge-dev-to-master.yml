@@ -7,15 +7,20 @@ name: Merge Dev to Master
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version name (e.g., 1.0.1)'
-        required: false
-        type: string
+      version_type:
+        description: 'Version bump type (major, minor, or patch)'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        default: 'minor'
       create_tag:
         description: 'Create a tag for this release?'
         required: false
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: write
@@ -69,11 +74,89 @@ jobs:
         path: app/build/outputs/apk/release/app-release.apk
         retention-days: 30
 
-  merge-to-master:
-    name: Merge Dev to Master
+  bump-version:
+    name: Bump Version
     needs: validate-dev
     runs-on: ubuntu-latest
     if: needs.validate-dev.result == 'success'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: dev
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+    
+    - name: Read current version
+      id: current_version
+      run: |
+        if [ -f "app/version.properties" ]; then
+          VERSION_NAME=$(grep "versionName=" app/version.properties | cut -d'=' -f2)
+          VERSION_CODE=$(grep "versionCode=" app/version.properties | cut -d'=' -f2)
+        else
+          VERSION_NAME="1.0.0"
+          VERSION_CODE="1"
+        fi
+        echo "current_version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+        echo "current_version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+        echo "Current version: $VERSION_NAME (code: $VERSION_CODE)"
+    
+    - name: Calculate new version
+      id: new_version
+      run: |
+        CURRENT="${{ steps.current_version.outputs.current_version_name }}"
+        TYPE="${{ github.event.inputs.version_type }}"
+        
+        # Parse current version (e.g., "1.2.3")
+        IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT"
+        MAJOR="${VERSION_PARTS[0]}"
+        MINOR="${VERSION_PARTS[1]}"
+        PATCH="${VERSION_PARTS[2]}"
+        
+        # Increment based on type
+        if [ "$TYPE" == "major" ]; then
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+        elif [ "$TYPE" == "minor" ]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        else  # patch
+          PATCH=$((PATCH + 1))
+        fi
+        
+        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        NEW_CODE=$(( ${{ steps.current_version.outputs.current_version_code }} + 1 ))
+        
+        echo "new_version_name=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "new_version_code=$NEW_CODE" >> $GITHUB_OUTPUT
+        echo "New version: $NEW_VERSION (code: $NEW_CODE)"
+    
+    - name: Update version.properties
+      run: |
+        cat > app/version.properties << EOF
+        versionCode=${{ steps.new_version.outputs.new_version_code }}
+        versionName=${{ steps.new_version.outputs.new_version_name }}
+        EOF
+        echo "Updated version.properties:"
+        cat app/version.properties
+    
+    - name: Commit version bump to dev
+      run: |
+        git add app/version.properties
+        git commit -m "Bump version to ${{ steps.new_version.outputs.new_version_name }} (${{ steps.new_version.outputs.new_version_code }})" || echo "No changes to commit"
+        git push origin dev || echo "Push failed or no changes"
+
+  merge-to-master:
+    name: Merge Dev to Master
+    needs: [validate-dev, bump-version]
+    runs-on: ubuntu-latest
+    if: needs.validate-dev.result == 'success' && needs.bump-version.result == 'success'
     
     steps:
     - name: Checkout repository
@@ -88,21 +171,28 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
     
+    - name: Get new version from dev
+      id: version_info
+      run: |
+        git fetch origin dev
+        git checkout dev
+        if [ -f "app/version.properties" ]; then
+          VERSION_NAME=$(grep "versionName=" app/version.properties | cut -d'=' -f2)
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Merge dev into master
       run: |
         git fetch origin master
         git fetch origin dev
         git checkout master
-        git merge origin/dev --no-ff -m "Merge dev into master [skip ci]"
+        git merge origin/dev --no-ff -m "Merge dev into master (v${{ steps.version_info.outputs.version_name }}) [skip ci]"
         git push origin master
     
     - name: Create tag (if requested)
       if: inputs.create_tag == 'true'
       run: |
-        VERSION="${{ inputs.version }}"
-        if [ -z "$VERSION" ]; then
-          VERSION=$(date +%Y.%m.%d)
-        fi
+        VERSION="${{ steps.version_info.outputs.version_name }}"
         git tag -a "v$VERSION" -m "Release v$VERSION - Merged from dev"
         git push origin "v$VERSION"
 
@@ -150,15 +240,24 @@ jobs:
         path: app/build/outputs/apk/release/app-release.apk
         retention-days: 30
     
+    - name: Get version from master
+      id: release_version
+      run: |
+        if [ -f "app/version.properties" ]; then
+          VERSION_NAME=$(grep "versionName=" app/version.properties | cut -d'=' -f2)
+          echo "version=$VERSION_NAME" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Create GitHub Release (if tag created)
       if: inputs.create_tag == 'true'
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ inputs.version || format('v{0}', github.run_number) }}
-        name: Release v${{ inputs.version || format('{0}', github.run_number) }}
+        tag_name: v${{ steps.release_version.outputs.version }}
+        name: Release v${{ steps.release_version.outputs.version }}
         body: |
-          Release merged from dev branch
+          Release v${{ steps.release_version.outputs.version }} merged from dev branch
           
+          **Version Type:** ${{ github.event.inputs.version_type }}
           **Commit:** ${{ github.sha }}
           **Branch:** dev → master
           
