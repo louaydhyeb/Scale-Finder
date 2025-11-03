@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.lddev.scalefinder.audio.ChordPlayer
+import com.lddev.scalefinder.audio.Metronome
 import com.lddev.scalefinder.model.Chord
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
@@ -28,14 +29,25 @@ class HomeViewModel : ViewModel() {
         private set
     var invertFretboard by mutableStateOf(true)
         private set
+    var showNoteNames by mutableStateOf(false)
+        private set
+    var metronomeBPM by mutableStateOf(120)
+        private set
+    var metronomeTimeSignature by mutableStateOf(4)
+        private set
+    var isMetronomeRunning by mutableStateOf(false)
+        private set
 
     private val chordPlayer = ChordPlayer()
+    private val metronome = Metronome()
 
     val suggestions: List<com.lddev.scalefinder.model.ScaleSuggestionRanked>
         get() = Theory.suggestScalesForProgression(progression)
 
     val chordTones: Set<Int>
         get() = selectedIndex?.let { idx -> progression.getOrNull(idx)?.tones } ?: emptySet()
+    
+    val metronomeCurrentBeat = metronome.currentBeat
 
     fun addChord(chord: Chord) {
         progression.add(chord)
@@ -66,6 +78,12 @@ class HomeViewModel : ViewModel() {
         progression.getOrNull(index)?.let { chordPlayer.playChord(it) }
     }
 
+    fun playChordArpeggio(index: Int) {
+        progression.getOrNull(index)?.let { chord ->
+            chordPlayer.playArpeggio(chord, noteDurationMs = 400, gapMs = 100, direction = "up")
+        }
+    }
+
     fun chooseScale(scale: Scale) {
         selectedScale = scale
     }
@@ -75,6 +93,29 @@ class HomeViewModel : ViewModel() {
     fun updateFretCount(value: Int) { fretCount = value.coerceIn(5, 18) }
     fun toggleHighContrast() { highContrast = !highContrast }
     fun toggleInvertFretboard() { invertFretboard = !invertFretboard }
+    fun toggleShowNoteNames() { showNoteNames = !showNoteNames }
+    
+    // Metronome controls
+    fun updateMetronomeBPM(bpm: Int) { 
+        metronomeBPM = bpm.coerceIn(30, 200)
+        metronome.setBPM(metronomeBPM)
+    }
+    
+    fun updateMetronomeTimeSignature(beats: Int) { 
+        metronomeTimeSignature = beats.coerceIn(2, 8)
+        metronome.setTimeSignature(metronomeTimeSignature)
+    }
+    
+    fun toggleMetronome() {
+        isMetronomeRunning = !isMetronomeRunning
+        if (isMetronomeRunning) {
+            metronome.setBPM(metronomeBPM)
+            metronome.setTimeSignature(metronomeTimeSignature)
+            metronome.start()
+        } else {
+            metronome.stop()
+        }
+    }
 
     fun applyProgressionPreset(preset: String) {
         progression.clear()
@@ -112,7 +153,6 @@ class HomeViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         chordPlayer.stop()
+        metronome.cleanup()
     }
 }
-
-

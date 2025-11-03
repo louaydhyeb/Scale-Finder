@@ -169,6 +169,3 @@ data class Tuning(val name: String, val openNotes: List<Note>) {
         fun all(): List<Tuning> = listOf(STANDARD, DROP_D, DADGAD)
     }
 }
-
-
-

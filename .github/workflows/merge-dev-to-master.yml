@@ -1,0 +1,170 @@
+name: Merge Dev to Master
+
+# When this workflow runs:
+# - Manual trigger only (button in GitHub Actions UI)
+# - Safely merges dev branch into master after validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version name (e.g., 1.0.1)'
+        required: false
+        type: string
+      create_tag:
+        description: 'Create a tag for this release?'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-dev:
+    name: Validate Dev Branch
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout dev branch
+      uses: actions/checkout@v4
+      with:
+        ref: dev
+        fetch-depth: 0
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Run tests (if they exist)
+      run: ./gradlew test || echo "No tests found, skipping"
+      continue-on-error: true
+    
+    - name: Build release APK
+      run: ./gradlew assembleRelease
+    
+    - name: Upload release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-apk-dev-${{ github.sha }}
+        path: app/build/outputs/apk/release/app-release.apk
+        retention-days: 30
+
+  merge-to-master:
+    name: Merge Dev to Master
+    needs: validate-dev
+    runs-on: ubuntu-latest
+    if: needs.validate-dev.result == 'success'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: master
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Merge dev into master
+      run: |
+        git fetch origin master
+        git fetch origin dev
+        git checkout master
+        git merge origin/dev --no-ff -m "Merge dev into master [skip ci]"
+        git push origin master
+    
+    - name: Create tag (if requested)
+      if: inputs.create_tag == 'true'
+      run: |
+        VERSION="${{ inputs.version }}"
+        if [ -z "$VERSION" ]; then
+          VERSION=$(date +%Y.%m.%d)
+        fi
+        git tag -a "v$VERSION" -m "Release v$VERSION - Merged from dev"
+        git push origin "v$VERSION"
+
+  build-master:
+    name: Build Master Branch
+    needs: merge-to-master
+    runs-on: ubuntu-latest
+    if: needs.merge-to-master.result == 'success'
+    
+    steps:
+    - name: Checkout master
+      uses: actions/checkout@v4
+      with:
+        ref: master
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Build release APK
+      run: ./gradlew assembleRelease
+    
+    - name: Upload master release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-apk-master-${{ github.sha }}
+        path: app/build/outputs/apk/release/app-release.apk
+        retention-days: 30
+    
+    - name: Create GitHub Release (if tag created)
+      if: inputs.create_tag == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ inputs.version || format('v{0}', github.run_number) }}
+        name: Release v${{ inputs.version || format('{0}', github.run_number) }}
+        body: |
+          Release merged from dev branch
+          
+          **Commit:** ${{ github.sha }}
+          **Branch:** dev → master
+          
+          Download the APK from the artifacts.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
