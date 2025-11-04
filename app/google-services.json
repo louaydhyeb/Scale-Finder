@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "647345483587",
+    "project_id": "scale-finder-f5714",
+    "storage_bucket": "scale-finder-f5714.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:647345483587:android:04d4697091be7c3f9509f6",
+        "android_client_info": {
+          "package_name": "com.lddev.scalefinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiy6Sxc0gSJjncz8Km0n-PdAlGL6MVkU4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
