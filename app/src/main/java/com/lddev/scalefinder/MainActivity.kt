@@ -14,25 +14,41 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.lddev.scalefinder.ui.screens.HomeScreen
+import com.lddev.scalefinder.ui.screens.SplashScreen
 import com.lddev.scalefinder.ui.theme.ScaleFinderTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install splash screen before super.onCreate
+        val splashScreen = installSplashScreen()
+        
         super.onCreate(savedInstanceState)
+        
         // Force landscape orientation programmatically
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         enableEdgeToEdge()
+        
         setContent {
             val systemDark = isSystemInDarkTheme()
             var isDark by rememberSaveable { mutableStateOf(systemDark) }
+            var showSplash by rememberSaveable { mutableStateOf(true) }
+            
             ScaleFinderTheme(darkTheme = isDark) {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(
-                        modifier = Modifier.padding(innerPadding),
-                        onToggleTheme = { isDark = !isDark },
-                        isDark = isDark
+                if (showSplash) {
+                    SplashScreen(
+                        darkTheme = isDark,
+                        onSplashComplete = { showSplash = false }
                     )
+                } else {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        HomeScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onToggleTheme = { isDark = !isDark },
+                            isDark = isDark
+                        )
+                    }
                 }
             }
         }

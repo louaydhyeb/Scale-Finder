@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.ScaleFinder" parent="Theme.SplashScreen">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.ScaleFinder.App</item>
+    </style>
 
-    <style name="Theme.ScaleFinder" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.ScaleFinder.App" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
 </resources>
