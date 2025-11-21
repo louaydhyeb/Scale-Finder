@@ -32,7 +32,7 @@ class GuitarKarplusStrong(
         delayIndex = nextIndex
 
         // Auto-kill when amplitude is tiny
-        if (kotlin.math.abs(sample) < 1e-5f) active = false
+        //if (kotlin.math.abs(sample) < 1e-5f) active = false
 
         return sample
     }
