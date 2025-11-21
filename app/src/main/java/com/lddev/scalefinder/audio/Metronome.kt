@@ -1,7 +1,7 @@
 package com.lddev.scalefinder.audio
 
+import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,14 +66,23 @@ class Metronome {
         val frequency = if (isAccent) accentFrequency else clickFrequency
         val buffer = generateClick(frequency, clickVolume)
         
-        val track = AudioTrack(
-            AudioManager.STREAM_MUSIC,
-            sampleRate,
-            AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            buffer.size * 2,
-            AudioTrack.MODE_STATIC
-        )
+        val track = AudioTrack.Builder()
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            .setAudioFormat(
+                AudioFormat.Builder()
+                    .setSampleRate(sampleRate)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .build()
+            )
+            .setBufferSizeInBytes(buffer.size * 2)
+            .setTransferMode(AudioTrack.MODE_STATIC)
+            .build()
         
         track.write(buffer, 0, buffer.size)
         track.play()
@@ -128,22 +137,7 @@ class Metronome {
     fun setTimeSignature(beats: Int) {
         beatsPerMeasure = beats.coerceIn(2, 8)
     }
-    
-    /**
-     * Get current BPM
-     */
-    fun getBPM(): Int = beatsPerMinute
-    
-    /**
-     * Get current time signature
-     */
-    fun getTimeSignature(): Int = beatsPerMeasure
-    
-    /**
-     * Check if metronome is currently playing
-     */
-    fun isRunning(): Boolean = isPlaying
-    
+
     /**
      * Clean up resources
      */

@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         // Force landscape orientation programmatically
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         enableEdgeToEdge()
-        
+
         setContent {
             val systemDark = isSystemInDarkTheme()
             var isDark by rememberSaveable { mutableStateOf(systemDark) }
