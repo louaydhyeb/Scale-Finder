@@ -7,12 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.lddev.scalefinder.audio.ChordPlayer
 import com.lddev.scalefinder.audio.Metronome
-import com.lddev.scalefinder.audio.engine.Adsr
 import com.lddev.scalefinder.audio.engine.AudioEngine
-import com.lddev.scalefinder.audio.engine.DelayEffect
-import com.lddev.scalefinder.audio.engine.GuitarKarplusStrong
-import com.lddev.scalefinder.audio.engine.LowPassFilter
-import com.lddev.scalefinder.audio.engine.ReverbEffect
 import com.lddev.scalefinder.model.Chord
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
@@ -57,17 +52,6 @@ class HomeViewModel : ViewModel() {
         get() = selectedIndex?.let { idx -> progression.getOrNull(idx)?.tones } ?: emptySet()
     
     val metronomeCurrentBeat = metronome.currentBeat
-
-    init {
-        engine.start()
-
-        val guitar = GuitarKarplusStrong()
-        val adsr = Adsr(guitar)
-        val filter = LowPassFilter(adsr)
-        val reverb = ReverbEffect(filter)
-
-        engine.addDsp(reverb)
-    }
 
     fun addChord(chord: Chord) {
         progression.add(chord)

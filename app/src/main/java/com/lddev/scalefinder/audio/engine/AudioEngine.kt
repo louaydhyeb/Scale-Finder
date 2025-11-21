@@ -68,10 +68,6 @@ class AudioEngine(
         track.release()
     }
 
-    fun getSourceDsp(): DspSource? = dsps.firstOrNull { it is DspSource } as? DspSource
-
-    fun getEnvelope(): Adsr? = dsps.firstOrNull { it is Adsr } as? Adsr
-
     companion object {
         val instance by lazy { AudioEngine() }
     }

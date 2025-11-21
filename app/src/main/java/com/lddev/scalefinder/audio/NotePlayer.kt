@@ -1,29 +1,51 @@
 package com.lddev.scalefinder.audio
 
-import com.lddev.scalefinder.audio.engine.Adsr
 import com.lddev.scalefinder.audio.engine.AudioEngine
+import com.lddev.scalefinder.audio.engine.DelayEffect
 import com.lddev.scalefinder.audio.engine.GuitarKarplusStrong
 import com.lddev.scalefinder.audio.engine.LowPassFilter
-import com.lddev.scalefinder.audio.engine.DelayEffect
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import com.lddev.scalefinder.audio.engine.ReverbEffect
+import kotlinx.coroutines.*
 
 class NotePlayer {
-    val engine = AudioEngine.instance
+    private val engine = AudioEngine.instance
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val guitar = GuitarKarplusStrong()
+    private val filter = LowPassFilter(guitar)
+    private val delay = DelayEffect(filter)
+    private val reverb = ReverbEffect(delay)
+
+    private var releaseJob: Job? = null
+
+    init {
+        engine.addDsp(reverb)
+    }
 
     /**
      * Plays a guitar-like note using the Karplus-Strong algorithm.
-     * This produces a realistic plucked string sound by modeling a vibrating string.
+     * The DSP chain lives inside this player, so calling this method handles
+     * starting the engine, triggering the envelope, and scheduling the release automatically.
      *
-     * @param frequencyHz The frequency of the note in Hz
-     * @param durationMs Duration of the note in milliseconds
-     * @param volume Volume level (0.0 to 1.0)
-     * @param damping Damping factor (0.0 to 1.0) - lower values create brighter sounds with longer decay
+     * @param frequencyHz The frequency of the note in Hz.
+     * @param durationMs How long before the note releases (controls ADSR release trigger).
      */
-    fun playGuitarNote(frequencyHz: Double) {
+    fun playGuitarNote(
+        frequencyHz: Double,
+        durationMs: Int = 1000
+    ) {
         engine.start()
-        engine.getSourceDsp()?.noteOn(frequencyHz)
-        engine.getEnvelope()?.noteOn()
+        releaseJob?.cancel()
+        guitar.noteOn(frequencyHz)
+        releaseJob = scope.launch {
+            delay(durationMs.toLong().coerceAtLeast(0L))
+            guitar.noteOff()
+        }
+    }
+
+    fun dispose() {
+        releaseJob?.cancel()
+        scope.cancel()
+        engine.removeDsp(reverb)
     }
 }

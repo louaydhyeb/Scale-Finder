@@ -60,6 +60,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -111,6 +112,9 @@ fun HomeScreen(modifier: Modifier = Modifier, vm: HomeViewModel = viewModel(), o
     val metronomeCurrentBeat by vm.metronomeCurrentBeat.collectAsState()
     val haptics = LocalHapticFeedback.current
     val notePlayer = remember { NotePlayer() }
+    DisposableEffect(Unit) {
+        onDispose { notePlayer.dispose() }
+    }
 
     Column(
         modifier = modifier
