@@ -18,7 +18,10 @@ class ChordPlayer {
     private val engine = AudioEngine()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     
+    @Volatile
     private val activeSynths = mutableListOf<Synth>()
+    @Volatile
+    private val activeFilters = mutableListOf<LowPassFilter>()
     private val releaseJobs = mutableListOf<Job>()
     private val stopping = AtomicBoolean(false)
     private var arpeggioPlaying = AtomicBoolean(false)
@@ -38,11 +41,21 @@ class ChordPlayer {
         val synths = frequencies.map { freq ->
             Synth()
         }
+        
+        // Create filters for each synth
+        val filters = synths.map { synth ->
+            LowPassFilter(synth)
+        }
 
-        // Add all synths to the engine
-        synths.forEach { synth ->
-            engine.addDsp(LowPassFilter(synth))
-            activeSynths.add(synth)
+        // Add all filters to the engine (synchronized)
+        synchronized(activeFilters) {
+            filters.forEach { filter ->
+                engine.addDsp(filter)
+                activeFilters.add(filter)
+            }
+            synths.forEach { synth ->
+                activeSynths.add(synth)
+            }
         }
 
         // Start the engine
@@ -61,11 +74,16 @@ class ChordPlayer {
                 synths.forEach { synth ->
                     synth.noteOff()
                 }
-                // Remove synths after release completes
+                // Remove filters after release completes
                 delay(500) // Wait for release envelope
-                synths.forEach { synth ->
-                    engine.removeDsp(synth)
-                    activeSynths.remove(synth)
+                synchronized(activeFilters) {
+                    filters.forEach { filter ->
+                        engine.removeDsp(filter)
+                        activeFilters.remove(filter)
+                    }
+                    synths.forEach { synth ->
+                        activeSynths.remove(synth)
+                    }
                 }
             }
         }
@@ -80,12 +98,22 @@ class ChordPlayer {
         releaseJobs.forEach { it.cancel() }
         releaseJobs.clear()
         
-        // Stop all active synths
-        activeSynths.forEach { synth ->
-            synth.noteOff()
-            engine.removeDsp(synth)
+        // Stop all active synths and remove filters (synchronized)
+        synchronized(activeFilters) {
+            val synthsCopy = activeSynths.toList()
+            val filtersCopy = activeFilters.toList()
+            
+            synthsCopy.forEach { synth ->
+                synth.noteOff()
+            }
+            
+            filtersCopy.forEach { filter ->
+                engine.removeDsp(filter)
+            }
+            
+            activeSynths.clear()
+            activeFilters.clear()
         }
-        activeSynths.clear()
     }
     
     fun dispose() {
@@ -137,8 +165,14 @@ class ChordPlayer {
         
         // Create a single Synth for the arpeggio
         val synth = Synth()
-        engine.addDsp(LowPassFilter(synth))
-        activeSynths.add(synth)
+        val filter = LowPassFilter(synth)
+        
+        synchronized(activeFilters) {
+            engine.addDsp(filter)
+            activeFilters.add(filter)
+            activeSynths.add(synth)
+        }
+        
         engine.start()
 
         stopping.set(false)
@@ -162,8 +196,11 @@ class ChordPlayer {
             delay(500)
             
             if (!stopping.get()) {
-                engine.removeDsp(synth)
-                activeSynths.remove(synth)
+                synchronized(activeFilters) {
+                    engine.removeDsp(filter)
+                    activeFilters.remove(filter)
+                    activeSynths.remove(synth)
+                }
             }
             
             arpeggioPlaying.set(false)
