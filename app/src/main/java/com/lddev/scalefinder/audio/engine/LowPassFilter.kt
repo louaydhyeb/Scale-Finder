@@ -2,7 +2,7 @@ package com.lddev.scalefinder.audio.engine
 
 class LowPassFilter(
     input: Dsp,
-    private var cutoffHz: Float = 2000f
+    private var cutoffHz: Float = 1200f
 ) : DspEffect(input) {
 
     private var prev = 0f

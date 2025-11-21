@@ -12,8 +12,7 @@ class NotePlayer {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val guitar = GuitarKarplusStrong()
-    private val filter = LowPassFilter(guitar)
-    private val delay = DelayEffect(filter)
+    private val delay = DelayEffect(guitar)
     private val reverb = ReverbEffect(delay)
 
     private var releaseJob: Job? = null
