@@ -50,6 +50,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -60,6 +61,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -114,6 +116,9 @@ fun HomeScreen(modifier: Modifier = Modifier, vm: HomeViewModel = viewModel(), o
     val metronomeCurrentBeat by vm.metronomeCurrentBeat.collectAsState()
     val haptics = LocalHapticFeedback.current
     val notePlayer = remember { NotePlayer() }
+    DisposableEffect(Unit) {
+        onDispose { notePlayer.dispose() }
+    }
 
     Column(
         modifier = modifier
@@ -734,7 +739,7 @@ private fun ChordPicker(onAdd: (Chord) -> Unit) {
             readOnly = true,
             label = { Text(rootLabel) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedRoot) },
-                modifier = Modifier.menuAnchor().semantics { contentDescription = rootSelectorDesc }
+                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).semantics { contentDescription = rootSelectorDesc }
         )
         DropdownMenu(expanded = expandedRoot, onDismissRequest = { expandedRoot = false }) {
             Note.entries.forEach { n ->
@@ -753,7 +758,7 @@ private fun ChordPicker(onAdd: (Chord) -> Unit) {
             readOnly = true,
             label = { Text(qualityLabel) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedQuality) },
-                modifier = Modifier.menuAnchor().semantics { contentDescription = qualitySelectorDesc }
+                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).semantics { contentDescription = qualitySelectorDesc }
         )
         DropdownMenu(expanded = expandedQuality, onDismissRequest = { expandedQuality = false }) {
             ChordQuality.entries.forEach { q ->

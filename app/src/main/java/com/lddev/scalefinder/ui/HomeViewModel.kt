@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.lddev.scalefinder.audio.ChordPlayer
 import com.lddev.scalefinder.audio.Metronome
+import com.lddev.scalefinder.audio.engine.AudioEngine
 import com.lddev.scalefinder.model.Chord
 import com.lddev.scalefinder.model.ChordVoicing
 import com.lddev.scalefinder.model.ChordVoicings
@@ -14,6 +15,9 @@ import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
 
 class HomeViewModel : ViewModel() {
+    // Audio engine init
+    val engine = AudioEngine.instance
+
     // UI State
     val progression = mutableStateListOf<Chord>()
     var selectedIndex by mutableStateOf<Int?>(null)
@@ -181,5 +185,6 @@ class HomeViewModel : ViewModel() {
         super.onCleared()
         chordPlayer.stop()
         metronome.cleanup()
+        engine.stop()
     }
 }
