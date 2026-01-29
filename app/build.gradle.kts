@@ -33,11 +33,9 @@ android {
 
     buildTypes {
         debug {
-            // Debug build type for development
+            // Debug build type for development (same applicationId as release for google-services.json)
             isMinifyEnabled = false
             isDebuggable = true
-            // Add ".debug" suffix to allow installing both debug and release on the same device
-            applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
 
