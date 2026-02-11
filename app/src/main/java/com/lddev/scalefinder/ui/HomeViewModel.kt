@@ -8,9 +8,10 @@ import androidx.lifecycle.ViewModel
 import com.lddev.scalefinder.audio.ChordPlayer
 import com.lddev.scalefinder.audio.Metronome
 import com.lddev.scalefinder.model.Chord
+import com.lddev.scalefinder.model.ChordVoicing
+import com.lddev.scalefinder.model.ChordVoicings
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
-import com.lddev.scalefinder.model.Theory
 
 class HomeViewModel : ViewModel() {
     // UI State
@@ -37,15 +38,20 @@ class HomeViewModel : ViewModel() {
         private set
     var isMetronomeRunning by mutableStateOf(false)
         private set
+    var selectedVoicing by mutableStateOf<ChordVoicing?>(null)
+        private set
 
     private val chordPlayer = ChordPlayer()
     private val metronome = Metronome()
 
-    val suggestions: List<com.lddev.scalefinder.model.ScaleSuggestionRanked>
-        get() = Theory.suggestScalesForProgression(progression)
-
     val chordTones: Set<Int>
         get() = selectedIndex?.let { idx -> progression.getOrNull(idx)?.tones } ?: emptySet()
+
+    /** Voicings available for the currently selected chord */
+    val selectedChordVoicings: List<ChordVoicing>
+        get() = selectedIndex?.let { idx ->
+            progression.getOrNull(idx)?.let { ChordVoicings.getVoicings(it) }
+        } ?: emptyList()
     
     val metronomeCurrentBeat = metronome.currentBeat
 
@@ -56,7 +62,10 @@ class HomeViewModel : ViewModel() {
 
     fun removeChord(index: Int) {
         if (index in progression.indices) progression.removeAt(index)
-        if (selectedIndex == index) selectedIndex = null
+        if (selectedIndex == index) {
+            selectedIndex = null
+            selectedVoicing = null
+        }
     }
 
     fun moveLeft(index: Int) {
@@ -75,6 +84,7 @@ class HomeViewModel : ViewModel() {
 
     fun selectChord(index: Int) {
         selectedIndex = index
+        selectedVoicing = null // reset voicing when switching chords
         progression.getOrNull(index)?.let { chordPlayer.playChord(it) }
     }
 
@@ -86,6 +96,21 @@ class HomeViewModel : ViewModel() {
 
     fun chooseScale(scale: Scale) {
         selectedScale = scale
+    }
+
+    /** Show a specific voicing on the fretboard, auto-adjusting the visible range. */
+    fun showVoicingOnNeck(voicing: ChordVoicing) {
+        selectedVoicing = voicing
+        val positiveFrets = voicing.frets.filter { it > 0 }
+        if (positiveFrets.isNotEmpty()) {
+            val minFret = positiveFrets.min()
+            val maxFret = positiveFrets.max()
+            val hasOpen = voicing.frets.any { it == 0 }
+            val newStart = if (hasOpen) 0 else maxOf(0, minFret - 1)
+            val newCount = maxOf(5, maxFret - newStart + 3).coerceAtMost(18)
+            fretStart = newStart
+            fretCount = newCount
+        }
     }
 
     fun setTuning(tuning: Tuning) { selectedTuning = tuning }
@@ -119,6 +144,8 @@ class HomeViewModel : ViewModel() {
 
     fun applyProgressionPreset(preset: String) {
         progression.clear()
+        selectedIndex = null
+        selectedVoicing = null
         when (preset) {
             "I-V-vi-IV (C)" -> {
                 progression.addAll(listOf(

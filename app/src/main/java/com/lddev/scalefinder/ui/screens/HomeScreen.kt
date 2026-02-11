@@ -87,11 +87,14 @@ import com.lddev.scalefinder.R
 import com.lddev.scalefinder.audio.NotePlayer
 import com.lddev.scalefinder.model.Chord
 import com.lddev.scalefinder.model.ChordQuality
+import com.lddev.scalefinder.model.ChordVoicing
 import com.lddev.scalefinder.model.Note
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Theory
 import com.lddev.scalefinder.model.Tuning
 import com.lddev.scalefinder.ui.HomeViewModel
+import com.lddev.scalefinder.ui.components.ChordDiagramView
+import com.lddev.scalefinder.ui.components.FretHighlight
 import com.lddev.scalefinder.ui.components.GuitarFretboard
 import kotlinx.coroutines.delay
 
@@ -185,6 +188,38 @@ fun HomeScreen(modifier: Modifier = Modifier, vm: HomeViewModel = viewModel(), o
             }
         )
 
+        // Chord Voicing Diagrams – visible when a chord is selected
+        val selectedChord = vm.selectedIndex?.let { progression.getOrNull(it) }
+        AnimatedVisibility(
+            visible = selectedChord != null,
+            enter = expandVertically(
+                expandFrom = Alignment.Top,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            ) + fadeIn(animationSpec = tween(300)),
+            exit = shrinkVertically(
+                shrinkTowards = Alignment.Top,
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        ) {
+            if (selectedChord != null) {
+                Column {
+                    Spacer(Modifier.height(8.dp))
+                    ChordVoicingSection(
+                        chord = selectedChord,
+                        voicings = vm.selectedChordVoicings,
+                        selectedVoicing = vm.selectedVoicing,
+                        onShowOnNeck = { voicing ->
+                            vm.showVoicingOnNeck(voicing)
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
+                    )
+                }
+            }
+        }
+
         Spacer(Modifier.height(8.dp))
 
         SuggestionsPanel(
@@ -222,6 +257,13 @@ fun HomeScreen(modifier: Modifier = Modifier, vm: HomeViewModel = viewModel(), o
         val chordTones = vm.chordTones
         val fretboardCardDesc = stringResource(R.string.content_fretboard_card)
 
+        // Build voicing highlights for the fretboard
+        val voicingHighlightColor = MaterialTheme.colorScheme.tertiary
+        val voicingHighlights = vm.selectedVoicing?.frets?.mapIndexedNotNull { stringIdx, fret ->
+            if (fret >= 0) FretHighlight(stringIdx, fret, voicingHighlightColor)
+            else null
+        } ?: emptyList()
+
         OutlinedCard(Modifier.fillMaxWidth().semantics { contentDescription = fretboardCardDesc }) {
             Column(Modifier.padding(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -237,7 +279,8 @@ fun HomeScreen(modifier: Modifier = Modifier, vm: HomeViewModel = viewModel(), o
                     chordTones = chordTones,
                     highContrast = highContrast,
                     invertStrings = invert,
-                    onNoteTapped = { stringIdx, fret, note ->
+                    highlights = voicingHighlights,
+                    onNoteTapped = { stringIdx, fret, _ ->
                         val freq = selectedTuning.getFrequency(stringIdx, fret)
                         notePlayer.playGuitarNote(freq, durationMs = 1000)
                     }
@@ -833,27 +876,6 @@ private fun SuggestionsPanel(
 }
 
 @Composable
-private fun DropdownTuning(current: Tuning, onChange: (Tuning) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    val tuningMenuDesc = stringResource(R.string.content_tuning_menu)
-    Column {
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth().semantics { contentDescription = tuningMenuDesc }
-        ) {
-            Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.size(8.dp))
-            Text(stringResource(R.string.tuning_label, current.name))
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            Tuning.all().forEach { t ->
-                DropdownMenuItem(text = { Text(t.name) }, onClick = { onChange(t); expanded = false })
-            }
-        }
-    }
-}
-
-@Composable
 private fun Stepper(label: String, value: Int, onChange: (Int) -> Unit) {
     var decrementPressed by remember { mutableStateOf(false) }
     var incrementPressed by remember { mutableStateOf(false) }
@@ -1074,6 +1096,117 @@ private fun MetronomeControls(
                         Stepper(label = "", value = timeSignature, onChange = onTimeSignatureChanged)
                     }
                 }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChordVoicingSection(
+    chord: Chord,
+    voicings: List<ChordVoicing>,
+    selectedVoicing: ChordVoicing?,
+    onShowOnNeck: (ChordVoicing) -> Unit
+) {
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                stringResource(R.string.chord_voicings),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                chord.toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            itemsIndexed(voicings) { _, voicing ->
+                val isSelected = voicing == selectedVoicing
+                val voicingCardDesc = stringResource(R.string.content_chord_voicing_card, voicing.name)
+
+                var cardScale by remember { mutableStateOf(0.9f) }
+                val scaleAnim = animateFloatAsState(
+                    targetValue = cardScale,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    label = "voicing_card_scale"
+                )
+
+                LaunchedEffect(voicing) {
+                    cardScale = 0.9f
+                    delay(50)
+                    cardScale = 1f
+                }
+
+                OutlinedCard(
+                    modifier = Modifier
+                        .scale(scaleAnim.value)
+                        .then(
+                            if (isSelected) Modifier.border(
+                                2.dp,
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.shapes.medium
+                            ) else Modifier
+                        )
+                        .semantics { contentDescription = voicingCardDesc }
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        ChordDiagramView(voicing = voicing)
+
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            voicing.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isSelected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Spacer(Modifier.height(6.dp))
+
+                        val showOnNeckDesc = stringResource(R.string.content_show_voicing_on_neck)
+                        OutlinedButton(
+                            onClick = { onShowOnNeck(voicing) },
+                            modifier = Modifier
+                                .height(32.dp)
+                                .semantics { contentDescription = showOnNeckDesc }
+                        ) {
+                            Icon(
+                                Icons.Default.Settings,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(Modifier.size(4.dp))
+                            Text(
+                                stringResource(R.string.show_voicing_on_neck),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
                 }
             }
         }
