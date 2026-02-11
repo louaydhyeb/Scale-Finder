@@ -36,6 +36,13 @@
     <string name="remove_chord">Remove</string>
     <string name="play_arpeggio">Play arpeggio</string>
     
+    <!-- Chord Voicings -->
+    <string name="chord_voicings">Chord Voicings</string>
+    <string name="show_voicing_on_neck">Show on Neck</string>
+    <string name="voicing_standard_tuning">Standard tuning</string>
+    <string name="content_chord_voicing_card">Chord voicing: %1$s</string>
+    <string name="content_show_voicing_on_neck">Show voicing on neck</string>
+
     <!-- Scale Suggestions -->
     <string name="scale_suggestions">Scale Suggestions</string>
     <string name="add_chords_to_see_suggestions">Add chords to see suggestions.</string>
