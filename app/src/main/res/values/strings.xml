@@ -87,6 +87,22 @@
     <string name="decrease">Decrease</string>
     <string name="increase">Increase</string>
     
+    <!-- Scale Explorer -->
+    <string name="nav_home">Home</string>
+    <string name="nav_scale_explorer">Scales</string>
+    <string name="scale_explorer_title">Scale Explorer</string>
+    <string name="select_root">Root</string>
+    <string name="select_scale_type">Scale Type</string>
+    <string name="scale_notes">Notes</string>
+    <string name="scale_formula">Formula</string>
+    <string name="diatonic_chords">Chords in Scale</string>
+    <string name="no_diatonic_chords">Pentatonic scales have fewer than 7 degrees.</string>
+    <string name="play_scale_ascending">Play ▲</string>
+    <string name="play_scale_descending">Play ▼</string>
+    <string name="scale_explorer_fretboard">Fretboard Preview</string>
+    <string name="use_in_home">Use in Home</string>
+    <string name="add_to_progression">Add to Progression</string>
+
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>
     <string name="content_settings_menu">Settings menu</string>
