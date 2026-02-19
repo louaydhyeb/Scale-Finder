@@ -103,6 +103,30 @@
     <string name="use_in_home">Use in Home</string>
     <string name="add_to_progression">Add to Progression</string>
 
+    <!-- Quiz -->
+    <string name="nav_quiz">Quiz</string>
+    <string name="quiz_title">Quiz</string>
+    <string name="quiz_choose_category">Choose a Category</string>
+    <string name="quiz_fretboard_notes">Fretboard Notes</string>
+    <string name="quiz_fretboard_notes_desc">Identify notes on the guitar neck</string>
+    <string name="quiz_diatonic_chords">Diatonic Chords</string>
+    <string name="quiz_diatonic_chords_desc">Name the chord at each scale degree</string>
+    <string name="quiz_scale_id">Scale Identification</string>
+    <string name="quiz_scale_id_desc">Identify scales from notes on the fretboard</string>
+    <string name="quiz_questions">Questions</string>
+    <string name="quiz_start">Start Quiz</string>
+    <string name="quiz_question_of">Question %1$d / %2$d</string>
+    <string name="quiz_score_label">Score: %1$d</string>
+    <string name="quiz_next">Next</string>
+    <string name="quiz_see_results">See Results</string>
+    <string name="quiz_complete">Quiz Complete!</string>
+    <string name="quiz_score_result">%1$d / %2$d</string>
+    <string name="quiz_accuracy">%1$d%%</string>
+    <string name="quiz_try_again">Try Again</string>
+    <string name="quiz_change_category">Change Category</string>
+    <string name="quiz_correct">Correct!</string>
+    <string name="quiz_wrong">Wrong! The answer is %1$s</string>
+
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>
     <string name="content_settings_menu">Settings menu</string>
