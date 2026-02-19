@@ -113,6 +113,20 @@
     <string name="quiz_diatonic_chords_desc">Name the chord at each scale degree</string>
     <string name="quiz_scale_id">Scale Identification</string>
     <string name="quiz_scale_id_desc">Identify scales from notes on the fretboard</string>
+    <string name="quiz_ear_note">Ear Training: Notes</string>
+    <string name="quiz_ear_note_desc">Identify notes by their sound</string>
+    <string name="quiz_ear_chord">Ear Training: Chords</string>
+    <string name="quiz_ear_chord_desc">Identify chord quality by ear</string>
+    <string name="quiz_chord_voicing">Chord Voicings</string>
+    <string name="quiz_chord_voicing_desc">Name the chord from its voicing diagram</string>
+    <string name="quiz_difficulty">Difficulty</string>
+    <string name="quiz_easy">Easy</string>
+    <string name="quiz_medium">Medium</string>
+    <string name="quiz_hard">Hard</string>
+    <string name="quiz_timed_mode">Timed Mode (15s per question)</string>
+    <string name="quiz_time_remaining">%1$ds</string>
+    <string name="quiz_timed_out">Time\'s up!</string>
+    <string name="quiz_play_sound">Play</string>
     <string name="quiz_questions">Questions</string>
     <string name="quiz_start">Start Quiz</string>
     <string name="quiz_question_of">Question %1$d / %2$d</string>
@@ -126,6 +140,11 @@
     <string name="quiz_change_category">Change Category</string>
     <string name="quiz_correct">Correct!</string>
     <string name="quiz_wrong">Wrong! The answer is %1$s</string>
+    <string name="quiz_review_wrong">Review Wrong Answers</string>
+    <string name="quiz_your_answer">Your answer: %1$s</string>
+    <string name="quiz_correct_answer">Correct: %1$s</string>
+    <string name="quiz_no_answer">No answer (timed out)</string>
+    <string name="quiz_all_correct">You got everything right!</string>
 
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>
