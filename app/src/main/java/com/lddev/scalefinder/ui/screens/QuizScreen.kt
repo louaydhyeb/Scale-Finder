@@ -1,6 +1,5 @@
 package com.lddev.scalefinder.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,12 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
@@ -24,7 +21,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,8 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -47,19 +41,31 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
-import com.lddev.scalefinder.model.Scale
-import com.lddev.scalefinder.model.Tuning
 import com.lddev.scalefinder.ui.QuizCategory
 import com.lddev.scalefinder.ui.QuizDifficulty
 import com.lddev.scalefinder.ui.QuizPhase
 import com.lddev.scalefinder.ui.QuizViewModel
-import com.lddev.scalefinder.ui.components.ChordDiagramView
-import com.lddev.scalefinder.ui.components.FretHighlight
-import com.lddev.scalefinder.ui.components.GuitarFretboard
-import com.lddev.scalefinder.ui.components.SectionHeader
-import com.lddev.scalefinder.ui.components.Stepper
+import com.lddev.scalefinder.ui.components.home_components.ChordDiagramView
+import com.lddev.scalefinder.ui.components.home_components.FretHighlight
+import com.lddev.scalefinder.ui.components.home_components.SectionHeader
+import com.lddev.scalefinder.ui.components.home_components.Stepper
+import com.lddev.scalefinder.ui.components.quiz_components.AnswerOption
+import com.lddev.scalefinder.ui.components.quiz_components.CategoryCard
+import com.lddev.scalefinder.ui.components.quiz_components.CorrectGreen
+import com.lddev.scalefinder.ui.components.quiz_components.EarTrainingCard
+import com.lddev.scalefinder.ui.components.quiz_components.FretboardCard
+import com.lddev.scalefinder.ui.components.quiz_components.GoldStar
+import com.lddev.scalefinder.ui.components.quiz_components.StatsCard
+import com.lddev.scalefinder.ui.components.quiz_components.WrongAnswerCard
 
-private val CorrectGreen = Color(0xFF4CAF50)
+private val categoryIcons = mapOf(
+    QuizCategory.FRETBOARD_NOTE to Icons.Default.Create,
+    QuizCategory.DIATONIC_CHORD to Icons.Default.Star,
+    QuizCategory.SCALE_IDENTIFICATION to Icons.Default.Search,
+    QuizCategory.EAR_NOTE to Icons.Default.PlayArrow,
+    QuizCategory.EAR_CHORD to Icons.Default.PlayArrow,
+    QuizCategory.CHORD_VOICING to Icons.Default.Info
+)
 
 @Composable
 fun QuizScreen(
@@ -101,19 +107,9 @@ fun QuizScreen(
 
 // ── Setup ──────────────────────────────────────────────────────────
 
-private val categoryIcons = mapOf(
-    QuizCategory.FRETBOARD_NOTE to Icons.Default.Create,
-    QuizCategory.DIATONIC_CHORD to Icons.Default.Star,
-    QuizCategory.SCALE_IDENTIFICATION to Icons.Default.Search,
-    QuizCategory.EAR_NOTE to Icons.Default.PlayArrow,
-    QuizCategory.EAR_CHORD to Icons.Default.PlayArrow,
-    QuizCategory.CHORD_VOICING to Icons.Default.Info
-)
-
 @Composable
 private fun QuizSetupContent(vm: QuizViewModel) {
     SectionHeader(icon = Icons.Default.Star, title = stringResource(R.string.quiz_choose_category))
-
     Spacer(Modifier.height(12.dp))
 
     QuizCategory.entries.forEach { category ->
@@ -127,9 +123,14 @@ private fun QuizSetupContent(vm: QuizViewModel) {
         Spacer(Modifier.height(8.dp))
     }
 
+    val stats = vm.categoryStats
+    if (stats.quizzesPlayed > 0) {
+        Spacer(Modifier.height(4.dp))
+        StatsCard(stats = stats)
+    }
+
     Spacer(Modifier.height(12.dp))
 
-    // Difficulty selector
     SectionHeader(icon = Icons.Default.Star, title = stringResource(R.string.quiz_difficulty))
     Spacer(Modifier.height(8.dp))
 
@@ -149,25 +150,17 @@ private fun QuizSetupContent(vm: QuizViewModel) {
 
     Spacer(Modifier.height(12.dp))
 
-    // Timer toggle
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            stringResource(R.string.quiz_timed_mode),
-            style = MaterialTheme.typography.titleSmall
-        )
-        Switch(
-            checked = vm.timedMode,
-            onCheckedChange = { vm.toggleTimedMode() }
-        )
+        Text(stringResource(R.string.quiz_timed_mode), style = MaterialTheme.typography.titleSmall)
+        Switch(checked = vm.timedMode, onCheckedChange = { vm.toggleTimedMode() })
     }
 
     Spacer(Modifier.height(12.dp))
 
-    // Question count
     Stepper(
         label = stringResource(R.string.quiz_questions),
         value = vm.questionCount,
@@ -176,62 +169,18 @@ private fun QuizSetupContent(vm: QuizViewModel) {
 
     Spacer(Modifier.height(16.dp))
 
-    Button(
-        onClick = { vm.startQuiz() },
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Button(onClick = { vm.startQuiz() }, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.quiz_start))
     }
-}
 
-@Composable
-private fun CategoryCard(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    OutlinedCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
-            color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant
-        ),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-            else MaterialTheme.colorScheme.surface
+    val total = vm.totalQuizzesPlayed
+    if (total > 0) {
+        Spacer(Modifier.height(12.dp))
+        Text(
+            stringResource(R.string.quiz_total_quizzes, total),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (selected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
-            )
-            Column {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (selected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
     }
 }
 
@@ -241,7 +190,6 @@ private fun CategoryCard(
 private fun QuizSessionContent(vm: QuizViewModel) {
     val question = vm.currentQuestion ?: return
 
-    // Header: question counter, timer, score
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -284,15 +232,10 @@ private fun QuizSessionContent(vm: QuizViewModel) {
 
     Spacer(Modifier.height(16.dp))
 
-    Text(
-        question.prompt,
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Medium
-    )
+    Text(question.prompt, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
 
     Spacer(Modifier.height(12.dp))
 
-    // Visual prompt based on category
     when (question.category) {
         QuizCategory.FRETBOARD_NOTE -> {
             if (question.highlightString != null && question.highlightFret != null) {
@@ -308,19 +251,16 @@ private fun QuizSessionContent(vm: QuizViewModel) {
                 Spacer(Modifier.height(12.dp))
             }
         }
-
         QuizCategory.SCALE_IDENTIFICATION -> {
             if (question.scale != null) {
                 FretboardCard(scale = question.scale)
                 Spacer(Modifier.height(12.dp))
             }
         }
-
         QuizCategory.EAR_NOTE, QuizCategory.EAR_CHORD -> {
             EarTrainingCard(onPlay = { vm.playCurrentQuestionAudio() })
             Spacer(Modifier.height(12.dp))
         }
-
         QuizCategory.CHORD_VOICING -> {
             if (question.chordVoicing != null) {
                 OutlinedCard(Modifier.fillMaxWidth()) {
@@ -336,11 +276,9 @@ private fun QuizSessionContent(vm: QuizViewModel) {
                 Spacer(Modifier.height(12.dp))
             }
         }
-
         QuizCategory.DIATONIC_CHORD -> {}
     }
 
-    // Answer choices
     question.choices.forEachIndexed { index, choice ->
         AnswerOption(
             text = choice,
@@ -352,7 +290,6 @@ private fun QuizSessionContent(vm: QuizViewModel) {
         if (index < question.choices.lastIndex) Spacer(Modifier.height(8.dp))
     }
 
-    // Feedback + navigation
     if (vm.hasAnswered) {
         Spacer(Modifier.height(12.dp))
 
@@ -387,119 +324,12 @@ private fun QuizSessionContent(vm: QuizViewModel) {
     }
 }
 
-@Composable
-private fun FretboardCard(
-    scale: Scale? = null,
-    highlights: List<FretHighlight> = emptyList()
-) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        GuitarFretboard(
-            modifier = Modifier.padding(8.dp),
-            tuning = Tuning.STANDARD,
-            scale = scale,
-            fretStart = 0,
-            fretCount = 12,
-            highlights = highlights,
-            invertStrings = true,
-            showNoteNames = false
-        )
-    }
-}
-
-@Composable
-private fun EarTrainingCard(onPlay: () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(
-            Modifier
-                .padding(24.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                Icons.Default.PlayArrow,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-            )
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = onPlay) {
-                Icon(
-                    Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.quiz_play_sound))
-            }
-        }
-    }
-}
-
-@Composable
-private fun AnswerOption(
-    text: String,
-    isSelected: Boolean,
-    isCorrect: Boolean,
-    showResult: Boolean,
-    onClick: () -> Unit
-) {
-    val borderColor = when {
-        showResult && isCorrect -> CorrectGreen
-        showResult && isSelected -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.outlineVariant
-    }
-    val containerColor = when {
-        showResult && isCorrect -> CorrectGreen.copy(alpha = 0.1f)
-        showResult && isSelected -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
-        else -> MaterialTheme.colorScheme.surface
-    }
-
-    OutlinedCard(
-        onClick = { if (!showResult) onClick() },
-        modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(
-            width = if ((showResult && isCorrect) || isSelected) 2.dp else 1.dp,
-            color = borderColor
-        ),
-        colors = CardDefaults.outlinedCardColors(containerColor = containerColor)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (isSelected || (showResult && isCorrect)) FontWeight.SemiBold
-                else FontWeight.Normal,
-                modifier = Modifier.weight(1f)
-            )
-            if (showResult && isCorrect) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    tint = CorrectGreen,
-                    modifier = Modifier.size(20.dp)
-                )
-            } else if (showResult && isSelected) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
 // ── Results ────────────────────────────────────────────────────────
 
 @Composable
 private fun QuizResultsContent(vm: QuizViewModel) {
     val accuracy = if (vm.questionCount > 0) (vm.score * 100) / vm.questionCount else 0
 
-    // Centered score section
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -550,6 +380,39 @@ private fun QuizResultsContent(vm: QuizViewModel) {
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
+        Spacer(Modifier.height(12.dp))
+
+        val stats = vm.categoryStats
+        if (vm.isNewBest) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(Icons.Default.Star, contentDescription = null, tint = GoldStar, modifier = Modifier.size(24.dp))
+                Text(
+                    stringResource(R.string.quiz_new_best),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldStar
+                )
+                Icon(Icons.Default.Star, contentDescription = null, tint = GoldStar, modifier = Modifier.size(24.dp))
+            }
+            Spacer(Modifier.height(4.dp))
+        }
+
+        if (stats.quizzesPlayed > 1) {
+            Text(
+                stringResource(R.string.quiz_your_best, stats.bestAccuracy),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                stringResource(R.string.quiz_your_avg, stats.averageAccuracy),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         Spacer(Modifier.height(8.dp))
 
         Text(
@@ -570,18 +433,14 @@ private fun QuizResultsContent(vm: QuizViewModel) {
         }
     }
 
-    // Wrong answers review (start-aligned)
     val wrongAnswers = vm.wrongAnswers
     if (wrongAnswers.isNotEmpty()) {
         Spacer(Modifier.height(24.dp))
-
         SectionHeader(
             icon = Icons.Default.Close,
             title = stringResource(R.string.quiz_review_wrong) + " (${wrongAnswers.size})"
         )
-
         Spacer(Modifier.height(8.dp))
-
         wrongAnswers.forEach { answer ->
             WrongAnswerCard(answer)
             Spacer(Modifier.height(8.dp))
@@ -594,40 +453,5 @@ private fun QuizResultsContent(vm: QuizViewModel) {
             fontWeight = FontWeight.Medium,
             color = CorrectGreen
         )
-    }
-}
-
-@Composable
-private fun WrongAnswerCard(answer: com.lddev.scalefinder.ui.QuizAnswer) {
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
-    ) {
-        Column(Modifier.padding(12.dp)) {
-            Text(
-                answer.question.prompt,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(Modifier.height(4.dp))
-            if (answer.selectedIndex >= 0) {
-                Text(
-                    stringResource(R.string.quiz_your_answer, answer.question.choices[answer.selectedIndex]),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            } else {
-                Text(
-                    stringResource(R.string.quiz_no_answer),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            Text(
-                stringResource(R.string.quiz_correct_answer, answer.question.choices[answer.question.correctIndex]),
-                style = MaterialTheme.typography.bodySmall,
-                color = CorrectGreen
-            )
-        }
     }
 }

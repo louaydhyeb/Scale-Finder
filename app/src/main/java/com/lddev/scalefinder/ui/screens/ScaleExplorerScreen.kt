@@ -66,9 +66,9 @@ import com.lddev.scalefinder.audio.NotePlayer
 import com.lddev.scalefinder.model.Note
 import com.lddev.scalefinder.model.ScaleType
 import com.lddev.scalefinder.ui.ScaleExplorerViewModel
-import com.lddev.scalefinder.ui.components.GuitarFretboard
-import com.lddev.scalefinder.ui.components.SectionHeader
-import com.lddev.scalefinder.ui.components.Stepper
+import com.lddev.scalefinder.ui.components.home_components.GuitarFretboard
+import com.lddev.scalefinder.ui.components.home_components.SectionHeader
+import com.lddev.scalefinder.ui.components.home_components.Stepper
 
 @Composable
 fun ScaleExplorerScreen(

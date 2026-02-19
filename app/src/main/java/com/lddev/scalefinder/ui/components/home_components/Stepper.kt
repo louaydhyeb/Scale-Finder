@@ -1,4 +1,4 @@
-package com.lddev.scalefinder.ui.components
+package com.lddev.scalefinder.ui.components.home_components
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState

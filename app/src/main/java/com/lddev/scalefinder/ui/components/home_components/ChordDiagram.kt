@@ -1,4 +1,4 @@
-package com.lddev.scalefinder.ui.components
+package com.lddev.scalefinder.ui.components.home_components
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
