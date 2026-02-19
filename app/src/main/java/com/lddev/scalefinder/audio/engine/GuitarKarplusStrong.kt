@@ -55,6 +55,4 @@ class GuitarKarplusStrong(
 
         return sample
     }
-
-    fun isActive() = active
 }

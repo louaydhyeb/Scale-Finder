@@ -7,10 +7,6 @@ class LowPassFilter(
 
     private var prev = 0f
 
-    fun setCutoff(hz: Float) {
-        cutoffHz = hz
-    }
-
     override fun compute(): Float {
         val x = next()
         val rc = 1f / (2f * Math.PI.toFloat() * cutoffHz)

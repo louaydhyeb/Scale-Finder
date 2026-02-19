@@ -34,22 +34,6 @@ class ReverbEffect(
     private var decayAmount = clampDecay(decay)
     private var mixAmount = clampMix(mix)
 
-    /** Sets the pre-delay time in milliseconds. */
-    fun setPreDelay(ms: Int) {
-        preDelayBuffer = createBuffer(ms.toFloat())
-        preDelayIndex = 0
-    }
-
-    /** Sets the decay/feedback amount (0 - 0.95). */
-    fun setDecay(value: Float) {
-        decayAmount = clampDecay(value)
-    }
-
-    /** Sets the wet mix amount (0 - 1). */
-    fun setMix(value: Float) {
-        mixAmount = clampMix(value)
-    }
-
     override fun compute(): Float {
         val dry = next()
         val predelayed = processPreDelay(dry)

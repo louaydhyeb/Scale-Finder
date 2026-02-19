@@ -79,6 +79,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -190,7 +191,18 @@ fun HomeScreen(modifier: Modifier = Modifier, vm: HomeViewModel = viewModel(), o
             onPlayArpeggio = { idx -> 
                 vm.playChordArpeggio(idx)
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            }
+            },
+            isPlaying = vm.isPlayingProgression,
+            currentPlayingIndex = vm.currentPlayingChordIndex,
+            progressionBPM = vm.progressionBPM,
+            loopEnabled = vm.loopProgression,
+            onPlay = {
+                vm.playProgression()
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            },
+            onStop = { vm.stopProgression() },
+            onBPMChange = vm::updateProgressionBPM,
+            onToggleLoop = vm::toggleLoopProgression
         )
 
         // Chord Voicing Diagrams – visible when a chord is selected
@@ -634,7 +646,15 @@ private fun ProgressionEditor(
     onMoveLeft: (Int) -> Unit,
     onMoveRight: (Int) -> Unit,
     onSelect: (Int) -> Unit,
-    onPlayArpeggio: (Int) -> Unit
+    onPlayArpeggio: (Int) -> Unit,
+    isPlaying: Boolean,
+    currentPlayingIndex: Int,
+    progressionBPM: Int,
+    loopEnabled: Boolean,
+    onPlay: () -> Unit,
+    onStop: () -> Unit,
+    onBPMChange: (Int) -> Unit,
+    onToggleLoop: () -> Unit
 ) {
     Column(Modifier.fillMaxWidth()) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -651,11 +671,28 @@ private fun ProgressionEditor(
             ChordPicker(onAdd)
         }
         Spacer(Modifier.height(8.dp))
+
+        // ── Play Progression controls ────────────────────────────────
+        AnimatedVisibility(visible = progression.size >= 2) {
+            ProgressionPlaybackBar(
+                isPlaying = isPlaying,
+                bpm = progressionBPM,
+                loopEnabled = loopEnabled,
+                onPlay = onPlay,
+                onStop = onStop,
+                onBPMChange = onBPMChange,
+                onToggleLoop = onToggleLoop
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(
                 items = progression,
                 key = { index, chord -> "${chord.root}${chord.quality}${index}" }
             ) { idx, chord ->
+                val isCurrentlyPlaying = isPlaying && idx == currentPlayingIndex
+
                 var cardScale by remember { mutableStateOf(0.8f) }
                 val scaleAnimation = animateFloatAsState(
                     targetValue = cardScale,
@@ -671,18 +708,40 @@ private fun ProgressionEditor(
                     delay(50)
                     cardScale = 1f
                 }
+
+                // Pulse animation when the chord is the active one during playback
+                val glowAlpha by animateFloatAsState(
+                    targetValue = if (isCurrentlyPlaying) 1f else 0f,
+                    animationSpec = tween(durationMillis = 200),
+                    label = "glow"
+                )
                 
                 val moveLeftDesc = stringResource(R.string.move_left)
                 val selectChordDesc = stringResource(R.string.select_chord)
                 val playArpeggioDesc = stringResource(R.string.play_arpeggio)
                 val moveRightDesc = stringResource(R.string.move_right)
                 val removeChordDesc = stringResource(R.string.remove_chord)
+
+                val highlightBorder = if (glowAlpha > 0f) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                } else Modifier
                 
                 OutlinedCard(
-                    modifier = Modifier.scale(scaleAnimation.value)
+                    modifier = Modifier
+                        .scale(scaleAnimation.value)
+                        .then(highlightBorder)
                 ) {
                     Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(chord.toString(), style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            text = chord.toString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = if (isCurrentlyPlaying) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface
+                        )
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                             IconButton(
                                 onClick = { onMoveLeft(idx) },
@@ -717,6 +776,97 @@ private fun ProgressionEditor(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Compact control bar for playing the progression: Play/Stop, BPM stepper, loop toggle. */
+@Composable
+private fun ProgressionPlaybackBar(
+    isPlaying: Boolean,
+    bpm: Int,
+    loopEnabled: Boolean,
+    onPlay: () -> Unit,
+    onStop: () -> Unit,
+    onBPMChange: (Int) -> Unit,
+    onToggleLoop: () -> Unit
+) {
+    val playDesc = stringResource(R.string.content_play_progression)
+    val stopDesc = stringResource(R.string.content_stop_progression)
+
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Play / Stop button
+            Button(
+                onClick = { if (isPlaying) onStop() else onPlay() },
+                modifier = Modifier.semantics {
+                    contentDescription = if (isPlaying) stopDesc else playDesc
+                }
+            ) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Default.Clear else Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    if (isPlaying) stringResource(R.string.stop_progression)
+                    else stringResource(R.string.play_progression)
+                )
+            }
+
+            // BPM stepper
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = { onBPMChange(bpm - 5) },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.decrease))
+                }
+                Text(
+                    text = "$bpm",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.width(36.dp),
+                    textAlign = TextAlign.Center
+                )
+                IconButton(
+                    onClick = { onBPMChange(bpm + 5) },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.increase))
+                }
+                Text(
+                    stringResource(R.string.bpm),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // Loop toggle
+            OutlinedButton(onClick = onToggleLoop) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp).rotate(if (loopEnabled) 0f else 0f),
+                    tint = if (loopEnabled) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    stringResource(R.string.loop_progression),
+                    color = if (loopEnabled) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
             }
         }
     }

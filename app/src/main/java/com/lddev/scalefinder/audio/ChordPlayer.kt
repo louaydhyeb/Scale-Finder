@@ -10,7 +10,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.pow
 
@@ -25,8 +24,14 @@ class ChordPlayer {
     private val releaseJobs = mutableListOf<Job>()
     private val stopping = AtomicBoolean(false)
     private var arpeggioPlaying = AtomicBoolean(false)
+    private val progressionPlaying = AtomicBoolean(false)
 
-    fun playChord(chord: Chord, durationMs: Int = 1200, volume: Float = 0.6f) {
+    companion object {
+        /** Time reserved at the end of each bar for the release envelope. */
+        private const val RELEASE_WINDOW_MS = 150L
+    }
+
+    fun playChord(chord: Chord, durationMs: Int = 1200) {
         stop()
 
         // Calculate MIDI notes for the chord
@@ -38,7 +43,7 @@ class ChordPlayer {
         val frequencies = midiNotes.map { midiToFreq(it) }
 
         // Create a Synth for each note in the chord
-        val synths = frequencies.map { freq ->
+        val synths = frequencies.map { _ ->
             Synth()
         }
         
@@ -93,37 +98,117 @@ class ChordPlayer {
     fun stop() {
         stopping.set(true)
         arpeggioPlaying.set(false)
+        progressionPlaying.set(false)
         
         // Cancel all release jobs
         releaseJobs.forEach { it.cancel() }
         releaseJobs.clear()
         
         // Stop all active synths and remove filters (synchronized)
-        synchronized(activeFilters) {
-            val synthsCopy = activeSynths.toList()
-            val filtersCopy = activeFilters.toList()
-            
-            synthsCopy.forEach { synth ->
-                synth.noteOff()
-            }
-            
-            filtersCopy.forEach { filter ->
-                engine.removeDsp(filter)
-            }
-            
-            activeSynths.clear()
-            activeFilters.clear()
-        }
-    }
-    
-    fun dispose() {
-        stop()
-        engine.stop()
-        scope.cancel()
+        cleanupSynths()
     }
 
     private fun midiToFreq(midi: Int): Double {
         return 440.0 * 2.0.pow((midi - 69) / 12.0)
+    }
+
+    /**
+     * Plays a full chord progression in tempo.
+     * Each chord sustains for one bar (beatsPerBar beats at the given BPM).
+     *
+     * @param chords       The chords to play sequentially.
+     * @param bpm          Tempo in beats per minute.
+     * @param beatsPerBar  How many beats each chord lasts (default 4 = one bar of 4/4).
+     * @param loop         Whether to repeat from the beginning when the end is reached.
+     * @param onChordStart Called on the main/default dispatcher with the index of the
+     *                     chord that just started playing (use to update UI highlights).
+     * @param onFinished   Called when the progression finishes (not called if stopped early).
+     */
+    fun playProgression(
+        chords: List<Chord>,
+        bpm: Int = 120,
+        beatsPerBar: Int = 4,
+        loop: Boolean = false,
+        onChordStart: (Int) -> Unit = {},
+        onFinished: () -> Unit = {}
+    ) {
+        stop()
+        if (chords.isEmpty()) return
+
+        progressionPlaying.set(true)
+
+        scope.launch {
+            val barDurationMs = (60_000L * beatsPerBar) / bpm
+
+            do {
+                for ((index, chord) in chords.withIndex()) {
+                    if (!progressionPlaying.get()) break
+
+                    onChordStart(index)
+
+                    // Play the chord (non-blocking helper that sets up synths and triggers noteOn)
+                    playChordInternal(chord)
+
+                    // Hold for one bar minus a small release window
+                    val holdMs = (barDurationMs - RELEASE_WINDOW_MS).coerceAtLeast(100)
+                    delay(holdMs)
+
+                    // Release the notes so they fade before the next chord
+                    releaseActiveSynths()
+                    delay(RELEASE_WINDOW_MS)
+                }
+            } while (loop && progressionPlaying.get())
+
+            if (progressionPlaying.get()) {
+                // Natural end (not user-stopped)
+                cleanupSynths()
+                progressionPlaying.set(false)
+                onFinished()
+            }
+        }
+    }
+
+    /** Stops a playing progression (or any playback). */
+    fun stopProgression() {
+        progressionPlaying.set(false)
+        stop()
+    }
+
+    // ── internal helpers for progression ──────────────────────────────
+
+    private fun playChordInternal(chord: Chord) {
+        // Tear down previous synths before creating new ones
+        cleanupSynths()
+
+        val baseMidi = 60
+        val rootMidi = baseMidi + chord.root.semitone
+        val frequencies = chord.quality.intervals.map { midiToFreq(rootMidi + it) }
+
+        val synths = frequencies.map { Synth() }
+        val filters = synths.map { LowPassFilter(it) }
+
+        synchronized(activeFilters) {
+            filters.forEach { engine.addDsp(it); activeFilters.add(it) }
+            synths.forEach { activeSynths.add(it) }
+        }
+
+        engine.start()
+        synths.forEachIndexed { i, s -> s.noteOn(frequencies[i]) }
+    }
+
+    private fun releaseActiveSynths() {
+        synchronized(activeFilters) {
+            activeSynths.toList().forEach { it.noteOff() }
+        }
+    }
+
+    private fun cleanupSynths() {
+        synchronized(activeFilters) {
+            activeSynths.toList().forEach { it.noteOff() }
+            activeFilters.toList().forEach { engine.removeDsp(it) }
+            activeSynths.clear()
+            activeFilters.clear()
+        }
     }
 
     /**
@@ -132,14 +217,12 @@ class ChordPlayer {
      * @param noteDurationMs Duration of each note in milliseconds
      * @param gapMs Gap between notes in milliseconds
      * @param direction "up" plays bottom to top, "down" plays top to bottom, "both" plays up then down
-     * @param volume Volume level (0.0 to 1.0)
      */
     fun playArpeggio(
         chord: Chord,
         noteDurationMs: Int = 400,
         gapMs: Int = 100,
-        direction: String = "up",
-        volume: Float = 0.6f
+        direction: String = "up"
     ) {
         // Stop any current playback
         stop()
