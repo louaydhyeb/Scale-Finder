@@ -127,6 +127,62 @@ data class ScaleSuggestion(val scale: Scale, val rationale: String)
 
 data class ScaleSuggestionRanked(val scale: Scale, val score: Double, val rationale: String)
 
+data class DiatonicChord(val degree: String, val chord: Chord)
+
+object ScaleFormulas {
+    private val majorIntervals = listOf(0, 2, 4, 5, 7, 9, 11)
+    private val degreeNames = listOf("1", "2", "3", "4", "5", "6", "7")
+
+    fun intervalFormula(scaleType: ScaleType): List<String> {
+        return scaleType.intervals.map { interval ->
+            val majorIdx = majorIntervals.indexOf(interval)
+            if (majorIdx >= 0) return@map degreeNames[majorIdx]
+
+            for (i in majorIntervals.indices) {
+                if (interval == majorIntervals[i] - 1) return@map "♭${degreeNames[i]}"
+                if (interval == majorIntervals[i] + 1) return@map "♯${degreeNames[i]}"
+            }
+            interval.toString()
+        }
+    }
+
+    fun scaleNotes(scale: Scale): List<Note> {
+        return scale.type.intervals.map { Note.fromSemitone(scale.root.semitone + it) }
+    }
+
+    fun diatonicChords(scale: Scale): List<DiatonicChord> {
+        val notes = scaleNotes(scale)
+        if (notes.size < 5) return emptyList()
+
+        val romanMajor = listOf("I", "II", "III", "IV", "V", "VI", "VII")
+        val romanMinor = listOf("i", "ii", "iii", "iv", "v", "vi", "vii")
+
+        return notes.indices.map { degree ->
+            val root = notes[degree]
+            val third = notes[(degree + 2) % notes.size]
+            val fifth = notes[(degree + 4) % notes.size]
+
+            val thirdInterval = Note.positiveMod(third.semitone - root.semitone, 12)
+            val fifthInterval = Note.positiveMod(fifth.semitone - root.semitone, 12)
+
+            val (quality, roman) = when {
+                thirdInterval == 4 && fifthInterval == 7 ->
+                    ChordQuality.MAJOR to romanMajor[degree]
+                thirdInterval == 3 && fifthInterval == 7 ->
+                    ChordQuality.MINOR to romanMinor[degree]
+                thirdInterval == 3 && fifthInterval == 6 ->
+                    ChordQuality.DIMINISHED to "${romanMinor[degree]}°"
+                thirdInterval == 4 && fifthInterval == 8 ->
+                    ChordQuality.MAJOR to "${romanMajor[degree]}+"
+                else ->
+                    ChordQuality.MAJOR to romanMajor[degree]
+            }
+
+            DiatonicChord(roman, Chord(root, quality))
+        }
+    }
+}
+
 data class Tuning(val name: String, val openNotes: List<Note>) {
     /**
      * Returns the MIDI note number for an open string at the given index.
