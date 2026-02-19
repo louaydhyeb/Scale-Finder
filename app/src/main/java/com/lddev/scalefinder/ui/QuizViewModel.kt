@@ -1,10 +1,12 @@
 package com.lddev.scalefinder.ui
 
+import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.lddev.scalefinder.R
 import com.lddev.scalefinder.audio.ChordPlayer
@@ -23,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.pow
+import androidx.core.content.edit
 
 enum class QuizCategory(val titleRes: Int, val descriptionRes: Int) {
     FRETBOARD_NOTE(R.string.quiz_fretboard_notes, R.string.quiz_fretboard_notes_desc),
@@ -60,20 +63,29 @@ data class QuizAnswer(
     val wasCorrect: Boolean
 )
 
-class QuizViewModel : ViewModel() {
+data class CategoryStats(
+    val quizzesPlayed: Int = 0,
+    val averageAccuracy: Int = 0,
+    val bestAccuracy: Int = 0
+)
+
+class QuizViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TIMER_SECONDS = 15
+        private const val PREFS_NAME = "quiz_stats"
         private val NATURAL_NOTES = listOf(
             Note.C, Note.D, Note.E, Note.F, Note.G, Note.A, Note.B
         )
     }
 
+    private val prefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private var notePlayer: NotePlayer? = null
     private var chordPlayer: ChordPlayer? = null
     private var timerJob: Job? = null
     private val answers = mutableListOf<QuizAnswer>()
     private val questions = mutableListOf<QuizQuestion>()
+    private var resultSaved = false
 
     // ── Setup state ────────────────────────────────────────────────
 
@@ -105,13 +117,29 @@ class QuizViewModel : ViewModel() {
     var isTimedOut by mutableStateOf(false)
         private set
 
-    // ── Results ────────────────────────────────────────────────────
+    // ── Stats ──────────────────────────────────────────────────────
+
+    var categoryStats by mutableStateOf(CategoryStats())
+        private set
+    var isNewBest by mutableStateOf(false)
+        private set
 
     val wrongAnswers: List<QuizAnswer> get() = answers.filter { !it.wasCorrect }
 
+    val totalQuizzesPlayed: Int
+        get() = QuizCategory.entries.sumOf { prefs.getInt("${it.name}_count", 0) }
+
+    init {
+        loadCategoryStats()
+    }
+
     // ── Setup actions ──────────────────────────────────────────────
 
-    fun selectCategory(category: QuizCategory) { selectedCategory = category }
+    fun selectCategory(category: QuizCategory) {
+        selectedCategory = category
+        loadCategoryStats()
+    }
+
     fun selectDifficulty(difficulty: QuizDifficulty) { selectedDifficulty = difficulty }
     fun updateQuestionCount(count: Int) { questionCount = count.coerceIn(5, 20) }
     fun toggleTimedMode() { timedMode = !timedMode }
@@ -121,6 +149,8 @@ class QuizViewModel : ViewModel() {
     fun startQuiz() {
         questions.clear()
         answers.clear()
+        resultSaved = false
+        isNewBest = false
         repeat(questionCount) { questions.add(generateQuestion(selectedCategory)) }
         currentQuestionIndex = 0
         score = 0
@@ -147,6 +177,10 @@ class QuizViewModel : ViewModel() {
         if (next >= questions.size) {
             timerJob?.cancel()
             phase = QuizPhase.RESULTS
+            if (!resultSaved) {
+                saveQuizResult()
+                resultSaved = true
+            }
         } else {
             currentQuestionIndex = next
             currentQuestion = questions[next]
@@ -166,6 +200,8 @@ class QuizViewModel : ViewModel() {
         selectedAnswerIndex = -1
         hasAnswered = false
         isTimedOut = false
+        isNewBest = false
+        loadCategoryStats()
     }
 
     fun playCurrentQuestionAudio() {
@@ -183,6 +219,43 @@ class QuizViewModel : ViewModel() {
             }
             else -> {}
         }
+    }
+
+    // ── Stats persistence ──────────────────────────────────────────
+
+    private fun saveQuizResult() {
+        val key = selectedCategory.name
+        val accuracy = if (questionCount > 0) (score * 100) / questionCount else 0
+        val prevBest = prefs.getInt("${key}_best", 0)
+        isNewBest = accuracy > prevBest
+
+        val newCount = prefs.getInt("${key}_count", 0) + 1
+        val newTotalScore = prefs.getInt("${key}_total_score", 0) + score
+        val newTotalQuestions = prefs.getInt("${key}_total_questions", 0) + questionCount
+
+        prefs.edit {
+            putInt("${key}_count", newCount)
+                .putInt("${key}_total_score", newTotalScore)
+                .putInt("${key}_total_questions", newTotalQuestions)
+                .putInt("${key}_best", maxOf(prevBest, accuracy))
+        }
+
+        loadCategoryStats()
+    }
+
+    private fun loadCategoryStats() {
+        val key = selectedCategory.name
+        val count = prefs.getInt("${key}_count", 0)
+        val totalScore = prefs.getInt("${key}_total_score", 0)
+        val totalQuestions = prefs.getInt("${key}_total_questions", 0)
+        val best = prefs.getInt("${key}_best", 0)
+        val avg = if (totalQuestions > 0) (totalScore * 100) / totalQuestions else 0
+
+        categoryStats = CategoryStats(
+            quizzesPlayed = count,
+            averageAccuracy = avg,
+            bestAccuracy = best
+        )
     }
 
     // ── Timer ──────────────────────────────────────────────────────

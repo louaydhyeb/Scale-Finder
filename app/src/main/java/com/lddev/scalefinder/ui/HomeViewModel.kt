@@ -27,9 +27,9 @@ class HomeViewModel : ViewModel() {
         private set
     var selectedTuning by mutableStateOf(Tuning.STANDARD)
         private set
-    var fretStart by mutableStateOf(0)
+    var fretStart by mutableIntStateOf(0)
         private set
-    var fretCount by mutableStateOf(12)
+    var fretCount by mutableIntStateOf(12)
         private set
     var highContrast by mutableStateOf(false)
         private set
@@ -37,9 +37,9 @@ class HomeViewModel : ViewModel() {
         private set
     var showNoteNames by mutableStateOf(false)
         private set
-    var metronomeBPM by mutableStateOf(120)
+    var metronomeBPM by mutableIntStateOf(120)
         private set
-    var metronomeTimeSignature by mutableStateOf(4)
+    var metronomeTimeSignature by mutableIntStateOf(4)
         private set
     var isMetronomeRunning by mutableStateOf(false)
         private set

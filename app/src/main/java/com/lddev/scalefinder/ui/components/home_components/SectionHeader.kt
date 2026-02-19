@@ -1,4 +1,4 @@
-package com.lddev.scalefinder.ui.components
+package com.lddev.scalefinder.ui.components.home_components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

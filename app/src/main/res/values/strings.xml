@@ -145,6 +145,14 @@
     <string name="quiz_correct_answer">Correct: %1$s</string>
     <string name="quiz_no_answer">No answer (timed out)</string>
     <string name="quiz_all_correct">You got everything right!</string>
+    <string name="quiz_your_stats">Your Stats</string>
+    <string name="quiz_quizzes_played">Played: %1$d</string>
+    <string name="quiz_avg_accuracy">Average: %1$d%%</string>
+    <string name="quiz_best_accuracy">Best: %1$d%%</string>
+    <string name="quiz_new_best">New best!</string>
+    <string name="quiz_your_best">Your best: %1$d%%</string>
+    <string name="quiz_your_avg">Your average: %1$d%%</string>
+    <string name="quiz_total_quizzes">Total quizzes played: %1$d</string>
 
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>

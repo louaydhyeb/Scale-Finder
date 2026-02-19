@@ -47,15 +47,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
 import com.lddev.scalefinder.audio.NotePlayer
 import com.lddev.scalefinder.ui.HomeViewModel
-import com.lddev.scalefinder.ui.components.ChordVoicingSection
-import com.lddev.scalefinder.ui.components.FretHighlight
-import com.lddev.scalefinder.ui.components.GuitarFretboard
-import com.lddev.scalefinder.ui.components.MetronomeControls
-import com.lddev.scalefinder.ui.components.PresetsBar
-import com.lddev.scalefinder.ui.components.ProgressionEditor
-import com.lddev.scalefinder.ui.components.SettingsMenu
-import com.lddev.scalefinder.ui.components.Stepper
-import com.lddev.scalefinder.ui.components.SuggestionsPanel
+import com.lddev.scalefinder.ui.components.home_components.ChordVoicingSection
+import com.lddev.scalefinder.ui.components.home_components.FretHighlight
+import com.lddev.scalefinder.ui.components.home_components.GuitarFretboard
+import com.lddev.scalefinder.ui.components.home_components.MetronomeControls
+import com.lddev.scalefinder.ui.components.home_components.PresetsBar
+import com.lddev.scalefinder.ui.components.home_components.ProgressionEditor
+import com.lddev.scalefinder.ui.components.home_components.SettingsMenu
+import com.lddev.scalefinder.ui.components.home_components.Stepper
+import com.lddev.scalefinder.ui.components.home_components.SuggestionsPanel
 
 @Composable
 fun HomeScreen(
