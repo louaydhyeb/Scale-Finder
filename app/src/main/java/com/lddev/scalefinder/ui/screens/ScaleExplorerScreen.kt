@@ -3,7 +3,6 @@ package com.lddev.scalefinder.ui.screens
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -266,23 +264,6 @@ private fun ScaleInfoCard(vm: ScaleExplorerViewModel) {
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            // Interval formula
-            SectionHeader(icon = Icons.Default.Search, title = stringResource(R.string.scale_formula))
-            Spacer(Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                vm.intervalFormula.forEachIndexed { index, interval ->
-                    IntervalChip(
-                        interval = interval,
-                        isRoot = index == 0,
-                        onClick = { vm.playNoteAtIndex(index) }
-                    )
-                }
-            }
         }
     }
 }
@@ -323,39 +304,6 @@ private fun NoteChip(
             style = MaterialTheme.typography.titleSmall,
             fontWeight = if (isRoot || isPlaying) FontWeight.Bold else FontWeight.Medium,
             color = textColor
-        )
-    }
-}
-
-@Composable
-private fun IntervalChip(
-    interval: String,
-    isRoot: Boolean,
-    onClick: () -> Unit = {}
-) {
-    Box(
-        modifier = Modifier
-            .clickable { onClick() }
-            .border(
-                width = 1.dp,
-                color = if (isRoot) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .background(
-                color = if (isRoot) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                else MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = interval,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isRoot) FontWeight.Bold else FontWeight.Normal,
-            color = if (isRoot) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface
         )
     }
 }

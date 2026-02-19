@@ -45,7 +45,6 @@ class ScaleExplorerViewModel : ViewModel() {
 
     val scale: Scale get() = Scale(selectedRoot, selectedScaleType)
     val scaleNotes: List<Note> get() = ScaleFormulas.scaleNotes(scale)
-    val intervalFormula: List<String> get() = ScaleFormulas.intervalFormula(selectedScaleType)
     val diatonicChords: List<DiatonicChord> get() = ScaleFormulas.diatonicChords(scale)
 
     fun setRoot(note: Note) { selectedRoot = note }
