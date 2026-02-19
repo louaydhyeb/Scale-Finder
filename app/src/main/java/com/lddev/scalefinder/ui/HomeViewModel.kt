@@ -1,6 +1,7 @@
 package com.lddev.scalefinder.ui
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -45,6 +46,16 @@ class HomeViewModel : ViewModel() {
     var selectedVoicing by mutableStateOf<ChordVoicing?>(null)
         private set
 
+    // Progression playback state
+    var isPlayingProgression by mutableStateOf(false)
+        private set
+    var currentPlayingChordIndex by mutableIntStateOf(-1)
+        private set
+    var progressionBPM by mutableIntStateOf(120)
+        private set
+    var loopProgression by mutableStateOf(false)
+        private set
+
     private val chordPlayer = ChordPlayer()
     private val metronome = Metronome()
 
@@ -65,6 +76,7 @@ class HomeViewModel : ViewModel() {
     }
 
     fun removeChord(index: Int) {
+        if (isPlayingProgression) stopProgression()
         if (index in progression.indices) progression.removeAt(index)
         if (selectedIndex == index) {
             selectedIndex = null
@@ -146,7 +158,46 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    // ── Progression playback controls ──────────────────────────────
+
+    fun updateProgressionBPM(bpm: Int) {
+        progressionBPM = bpm.coerceIn(40, 240)
+    }
+
+    fun toggleLoopProgression() {
+        loopProgression = !loopProgression
+    }
+
+    fun playProgression() {
+        if (progression.isEmpty()) return
+        // Take a snapshot so mutations during playback won't crash
+        val chords = progression.toList()
+        isPlayingProgression = true
+        currentPlayingChordIndex = 0
+        chordPlayer.playProgression(
+            chords = chords,
+            bpm = progressionBPM,
+            beatsPerBar = 4,
+            loop = loopProgression,
+            onChordStart = { index ->
+                currentPlayingChordIndex = index
+                selectedIndex = index
+            },
+            onFinished = {
+                isPlayingProgression = false
+                currentPlayingChordIndex = -1
+            }
+        )
+    }
+
+    fun stopProgression() {
+        chordPlayer.stopProgression()
+        isPlayingProgression = false
+        currentPlayingChordIndex = -1
+    }
+
     fun applyProgressionPreset(preset: String) {
+        if (isPlayingProgression) stopProgression()
         progression.clear()
         selectedIndex = null
         selectedVoicing = null
@@ -183,6 +234,7 @@ class HomeViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
+        stopProgression()
         chordPlayer.stop()
         metronome.cleanup()
         engine.stop()
