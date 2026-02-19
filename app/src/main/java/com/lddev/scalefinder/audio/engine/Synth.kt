@@ -1,6 +1,5 @@
 package com.lddev.scalefinder.audio.engine
 
-import java.lang.Math.pow
 import kotlin.math.PI
 import kotlin.math.pow
 import kotlin.math.sin
@@ -64,31 +63,9 @@ class Synth(
 ) : DspSource() {
     
     private var frequency = 0.0
-    private lateinit var oscillator1: Oscillator
-    private lateinit var oscillator2: Oscillator
-    
-    init {
-        oscillator1 = Oscillator(sampleRate, oscillator1Type, oscillator1Detune)
-        oscillator2 = Oscillator(sampleRate, oscillator2Type, oscillator2Detune)
-    }
-    
-    // Public setters for runtime control
-    fun setOscillator1Type(type: OscillatorType) {
-        oscillator1.type = type
-    }
-    
-    fun setOscillator1Detune(detune: Float) {
-        oscillator1.detune = detune
-    }
-    
-    fun setOscillator2Type(type: OscillatorType) {
-        oscillator2.type = type
-    }
-    
-    fun setOscillator2Detune(detune: Float) {
-        oscillator2.detune = detune
-    }
-    
+    private var oscillator1: Oscillator = Oscillator(sampleRate, oscillator1Type, oscillator1Detune)
+    private var oscillator2: Oscillator = Oscillator(sampleRate, oscillator2Type, oscillator2Detune)
+
     override fun onNoteOn(freq: Double) {
         frequency = freq
         oscillator1.reset()

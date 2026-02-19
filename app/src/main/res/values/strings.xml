@@ -35,6 +35,12 @@
     <string name="select_chord">Select</string>
     <string name="remove_chord">Remove</string>
     <string name="play_arpeggio">Play arpeggio</string>
+    <string name="play_progression">Play Progression</string>
+    <string name="stop_progression">Stop</string>
+    <string name="progression_bpm">Tempo</string>
+    <string name="loop_progression">Loop</string>
+    <string name="content_play_progression">Play full progression in tempo</string>
+    <string name="content_stop_progression">Stop progression playback</string>
     
     <!-- Chord Voicings -->
     <string name="chord_voicings">Chord Voicings</string>
