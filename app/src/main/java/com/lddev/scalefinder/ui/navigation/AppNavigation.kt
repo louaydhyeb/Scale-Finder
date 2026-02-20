@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -28,11 +29,13 @@ import com.lddev.scalefinder.R
 import com.lddev.scalefinder.ui.screens.HomeScreen
 import com.lddev.scalefinder.ui.screens.QuizScreen
 import com.lddev.scalefinder.ui.screens.ScaleExplorerScreen
+import com.lddev.scalefinder.ui.screens.TranscriptionScreen
 
 enum class AppRoute(val route: String, val labelRes: Int, val icon: ImageVector) {
     HOME("home", R.string.nav_home, Icons.Default.Home),
     SCALE_EXPLORER("scale_explorer", R.string.nav_scale_explorer, Icons.Default.Search),
-    QUIZ("quiz", R.string.nav_quiz, Icons.Default.CheckCircle);
+    QUIZ("quiz", R.string.nav_quiz, Icons.Default.CheckCircle),
+    TRANSCRIPTION("transcription", R.string.nav_transcription, Icons.Default.Create);
 }
 
 @Composable
@@ -84,6 +87,9 @@ fun AppNavigation(
                 }
                 composable(AppRoute.QUIZ.route) {
                     QuizScreen()
+                }
+                composable(AppRoute.TRANSCRIPTION.route) {
+                    TranscriptionScreen()
                 }
             }
         }

@@ -113,6 +113,12 @@
 -keepclassmembernames interface kotlinx.coroutines.CoroutineExceptionHandler {}
 
 # ============================================================================
+# TENSORFLOW LITE
+# ============================================================================
+-keep class org.tensorflow.** { *; }
+-dontwarn org.tensorflow.**
+
+# ============================================================================
 # WARNINGS
 # ============================================================================
 # Suppress warnings for missing classes
