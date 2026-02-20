@@ -190,6 +190,17 @@
     <string name="tuner_frequency_format">%.1f Hz</string>
     <string name="tuner_cents_format">%+.0f cents</string>
 
+    <!-- Tutorial -->
+    <string name="tutorial_next">Next</string>
+    <string name="tutorial_skip">Skip</string>
+    <string name="tutorial_done">Got it!</string>
+    <string name="tutorial_step">%1$d / %2$d</string>
+    <string name="tutorial_home_desc">Your workspace — build chord progressions, visualize the fretboard, and practice with the metronome.</string>
+    <string name="tutorial_tuner_desc">Tune your guitar in real time with the built-in chromatic tuner.</string>
+    <string name="tutorial_scales_desc">Browse scales by root and type, see notes, formulas, and diatonic chords.</string>
+    <string name="tutorial_quiz_desc">Test your ear and theory knowledge with interactive quizzes.</string>
+    <string name="tutorial_tab_desc">Transcribe audio or video files into guitar tablature using AI pitch detection.</string>
+
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>
     <string name="content_fretboard_icon">Fretboard</string>
