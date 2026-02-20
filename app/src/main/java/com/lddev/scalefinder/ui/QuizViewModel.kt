@@ -73,6 +73,7 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TIMER_SECONDS = 15
+        private const val MAX_GENERATION_ATTEMPTS = 20
         private const val PREFS_NAME = "quiz_stats"
         private val NATURAL_NOTES = listOf(
             Note.C, Note.D, Note.E, Note.F, Note.G, Note.A, Note.B
@@ -328,16 +329,24 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun generateDiatonicChordQuestion(): QuizQuestion {
-        val root = notesForDifficulty().random()
         val scaleTypes = when (selectedDifficulty) {
             QuizDifficulty.EASY -> listOf(ScaleType.MAJOR)
             QuizDifficulty.MEDIUM -> listOf(ScaleType.MAJOR, ScaleType.AEOLIAN, ScaleType.DORIAN)
             QuizDifficulty.HARD -> ScaleType.entries.filter { it.intervals.size >= 7 }
         }
-        val scaleType = scaleTypes.random()
-        val scale = Scale(root, scaleType)
-        val chords = ScaleFormulas.diatonicChords(scale)
-        if (chords.isEmpty()) return generateDiatonicChordQuestion()
+        val notes = notesForDifficulty()
+        var scale = Scale(Note.C, ScaleType.MAJOR)
+        var chords = ScaleFormulas.diatonicChords(scale)
+        var attempts = 0
+        do {
+            scale = Scale(notes.random(), scaleTypes.random())
+            chords = ScaleFormulas.diatonicChords(scale)
+            attempts++
+        } while (chords.isEmpty() && attempts < MAX_GENERATION_ATTEMPTS)
+        if (chords.isEmpty()) {
+            scale = Scale(Note.C, ScaleType.MAJOR)
+            chords = ScaleFormulas.diatonicChords(scale)
+        }
 
         val target = chords.random()
         val correct = target.chord
@@ -356,7 +365,7 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         val choices = (listOf(correct) + wrong).shuffled()
         return QuizQuestion(
             category = QuizCategory.DIATONIC_CHORD,
-            prompt = "In ${root.label} ${scaleType.display}, what is the ${target.degree} chord?",
+            prompt = "In ${scale.root.label} ${scale.type.display}, what is the ${target.degree} chord?",
             choices = choices.map { it.toString() },
             correctIndex = choices.indexOf(correct)
         )
@@ -432,11 +441,19 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
             )
             QuizDifficulty.HARD -> ChordQuality.entries.toList()
         }
-        val root = notesForDifficulty().random()
-        val quality = qualities.random()
-        val chord = Chord(root, quality)
-        val voicings = ChordVoicings.getVoicings(chord)
-        if (voicings.isEmpty()) return generateChordVoicingQuestion()
+        val notes = notesForDifficulty()
+        var chord = Chord(notes.random(), qualities.random())
+        var voicings = ChordVoicings.getVoicings(chord)
+        var attempts = 0
+        do {
+            chord = Chord(notes.random(), qualities.random())
+            voicings = ChordVoicings.getVoicings(chord)
+            attempts++
+        } while (voicings.isEmpty() && attempts < MAX_GENERATION_ATTEMPTS)
+        if (voicings.isEmpty()) {
+            chord = Chord(Note.C, ChordQuality.MAJOR)
+            voicings = ChordVoicings.getVoicings(chord)
+        }
         val voicing = voicings.random()
 
         val wrong = Theory.allChords()
@@ -457,6 +474,6 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
         timerJob?.cancel()
         notePlayer?.dispose()
-        chordPlayer?.stop()
+        chordPlayer?.dispose()
     }
 }

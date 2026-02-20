@@ -7,46 +7,22 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = WoodDarkBackground,
-    surface = WoodDarkSurface,
-    onPrimary = WoodDarkOnPrimary,
-    onSecondary = WoodDarkOnSecondary,
-    onTertiary = WoodDarkOnTertiary,
-    onBackground = WoodDarkOnBackground,
-    onSurface = WoodDarkOnSurface
+    primary = DarkPrimary, secondary = DarkSecondary, tertiary = DarkTertiary,
+    background = DarkBackground, surface = DarkSurface, surfaceVariant = DarkSurfaceVariant,
+    onPrimary = DarkOnPrimary, onSecondary = DarkOnSecondary, onTertiary = DarkOnTertiary,
+    onBackground = DarkOnBackground, onSurface = DarkOnSurface, onSurfaceVariant = DarkOnSurfaceVariant,
+    outline = DarkOutline, error = DarkError, onError = DarkOnError
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = WoodLightBackground,
-    surface = WoodLightSurface,
-    onPrimary = WoodLightOnPrimary,
-    onSecondary = WoodLightOnSecondary,
-    onTertiary = WoodLightOnTertiary,
-    onBackground = WoodLightOnBackground,
-    onSurface = WoodLightOnSurface
+    primary = LightPrimary, secondary = LightSecondary, tertiary = LightTertiary,
+    background = LightBackground, surface = LightSurface, surfaceVariant = LightSurfaceVariant,
+    onPrimary = LightOnPrimary, onSecondary = LightOnSecondary, onTertiary = LightOnTertiary,
+    onBackground = LightOnBackground, onSurface = LightOnSurface, onSurfaceVariant = LightOnSurfaceVariant,
+    outline = LightOutline, error = LightError, onError = LightOnError
 )
 
 @Composable
-fun ScaleFinderTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Use consistent wood palette across devices
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+fun ScaleFinderTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme, typography = Typography, content = content)
 }

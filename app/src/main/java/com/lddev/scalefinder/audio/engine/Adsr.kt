@@ -12,19 +12,33 @@ class Adsr(
     private var state = State.IDLE
     private var env = 0f
 
+    private var stepA = 0f
+    private var stepD = 0f
+    private var stepR = 0f
+
+    init {
+        stepA = computeStep(attackMs, 1f)
+        stepD = computeStep(decayMs, 1f - sustain)
+        stepR = computeStep(releaseMs, sustain)
+    }
+
+    private fun computeStep(timeMs: Float, range: Float): Float {
+        val samples = timeMs.coerceAtLeast(0.01f) * sampleRate / 1000f
+        return range / samples
+    }
+
     fun noteOn() {
+        stepA = computeStep(attackMs, 1f)
+        stepD = computeStep(decayMs, 1f - sustain)
         state = State.ATTACK
     }
 
     fun noteOff() {
+        stepR = computeStep(releaseMs, env.coerceAtLeast(0f))
         state = State.RELEASE
     }
 
     override fun compute(): Float {
-        val stepA = 1f / (attackMs * sampleRate / 1000f)
-        val stepD = (1f - sustain) / (decayMs * sampleRate / 1000f)
-        val stepR = sustain / (releaseMs * sampleRate / 1000f)
-
         env = when (state) {
             State.ATTACK -> {
                 val v = env + stepA

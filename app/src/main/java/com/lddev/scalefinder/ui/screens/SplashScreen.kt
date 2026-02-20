@@ -23,10 +23,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.material3.Text
-import com.lddev.scalefinder.ui.theme.WoodLightPrimary
-import com.lddev.scalefinder.ui.theme.WoodLightTertiary
-import com.lddev.scalefinder.ui.theme.WoodDarkPrimary
-import com.lddev.scalefinder.ui.theme.WoodDarkTertiary
+import com.lddev.scalefinder.ui.theme.LightPrimary
+import com.lddev.scalefinder.ui.theme.LightTertiary
+import com.lddev.scalefinder.ui.theme.DarkPrimary
+import com.lddev.scalefinder.ui.theme.DarkTertiary
 
 @Composable
 fun SplashScreen(
@@ -44,7 +44,6 @@ fun SplashScreen(
     )
 
     LaunchedEffect(key1 = true) {
-        startAnimation = true
     }
 
     LaunchedEffect(alphaAnim.value) {
@@ -81,9 +80,9 @@ fun SplashScreen(
                     style = SpanStyle(
                         brush = Brush.horizontalGradient(
                             colors = if (darkTheme) {
-                                listOf(WoodDarkPrimary, WoodDarkTertiary)
+                                listOf(DarkPrimary, DarkTertiary)
                             } else {
-                                listOf(WoodLightPrimary, WoodLightTertiary)
+                                listOf(LightPrimary, LightTertiary)
                             }
                         ),
                         fontWeight = FontWeight.Bold

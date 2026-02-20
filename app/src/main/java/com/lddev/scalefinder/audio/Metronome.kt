@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.os.Build
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,32 +18,42 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class Metronome {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val sampleRate = 44100
 
-    private val clickFrequency = 800.0
-    private val accentFrequency = 1200.0
+    companion object {
+        private const val TAG = "Metronome"
+        const val SAMPLE_RATE = 44100
+        const val CLICK_FREQ = 800.0
+        const val ACCENT_FREQ = 1200.0
+        const val CLICK_DURATION_MS = 50
+        const val CLICK_VOLUME = 0.3f
+        const val DEFAULT_BPM = 120
+        const val DEFAULT_BEATS = 4
+        const val MIN_BPM = 30
+        const val MAX_BPM = 200
+        const val MIN_BEATS = 2
+        const val MAX_BEATS = 8
+    }
+
+    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var disposed = false
 
     private var isPlaying = false
-    private var beatsPerMinute = 120
-    private var beatsPerMeasure = 4
+    private var beatsPerMinute = DEFAULT_BPM
+    private var beatsPerMeasure = DEFAULT_BEATS
 
     private val _currentBeat = MutableStateFlow(0)
     val currentBeat: StateFlow<Int> = _currentBeat
 
-    private val clickDuration = 50
-    private val clickVolume = 0.3f
+    private val normalClickBuffer = generateClick(CLICK_FREQ, CLICK_VOLUME)
+    private val accentClickBuffer = generateClick(ACCENT_FREQ, CLICK_VOLUME)
 
-    private val normalClickBuffer = generateClick(clickFrequency, clickVolume)
-    private val accentClickBuffer = generateClick(accentFrequency, clickVolume)
-
-    private val normalTrack = buildClickTrack(normalClickBuffer)
-    private val accentTrack = buildClickTrack(accentClickBuffer)
+    private val normalTrack: AudioTrack? = buildClickTrack(normalClickBuffer)
+    private val accentTrack: AudioTrack? = buildClickTrack(accentClickBuffer)
 
     private fun generateClick(frequency: Double, volume: Float): ShortArray {
-        val samples = (sampleRate * (clickDuration / 1000.0)).toInt()
+        val samples = (SAMPLE_RATE * (CLICK_DURATION_MS / 1000.0)).toInt()
         val buffer = ShortArray(samples)
-        val phaseIncrement = 2.0 * PI * frequency / sampleRate
+        val phaseIncrement = 2.0 * PI * frequency / SAMPLE_RATE
         var phase = 0.0
 
         for (i in buffer.indices) {
@@ -60,41 +71,49 @@ class Metronome {
         return buffer
     }
 
-    private fun buildClickTrack(buffer: ShortArray): AudioTrack {
-        val builder = AudioTrack.Builder()
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build()
-            )
-            .setAudioFormat(
-                AudioFormat.Builder()
-                    .setSampleRate(sampleRate)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .build()
-            )
-            .setBufferSizeInBytes(buffer.size * 2)
-            .setTransferMode(AudioTrack.MODE_STATIC)
+    private fun buildClickTrack(buffer: ShortArray): AudioTrack? {
+        return try {
+            val builder = AudioTrack.Builder()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setSampleRate(SAMPLE_RATE)
+                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .build()
+                )
+                .setBufferSizeInBytes(buffer.size * 2)
+                .setTransferMode(AudioTrack.MODE_STATIC)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+            }
+
+            val track = builder.build()
+            track.write(buffer, 0, buffer.size)
+            track
+        } catch (e: Exception) {
+            Log.w(TAG, "buildClickTrack failed", e)
+            null
         }
-
-        val track = builder.build()
-        track.write(buffer, 0, buffer.size)
-        return track
     }
 
     private fun playClick(isAccent: Boolean = false) {
-        val track = if (isAccent) accentTrack else normalTrack
-        try { track.stop() } catch (_: IllegalStateException) { }
-        track.setPlaybackHeadPosition(0)
-        track.play()
+        val track = (if (isAccent) accentTrack else normalTrack) ?: return
+        try {
+            track.stop()
+            track.setPlaybackHeadPosition(0)
+            track.play()
+        } catch (_: Exception) { }
     }
 
     fun start(initialBeat: Int = 1) {
+        if (disposed) return
         if (isPlaying) return
         isPlaying = true
 
@@ -122,17 +141,18 @@ class Metronome {
     }
 
     fun setBPM(bpm: Int) {
-        beatsPerMinute = bpm.coerceIn(30, 200)
+        beatsPerMinute = bpm.coerceIn(MIN_BPM, MAX_BPM)
     }
 
     fun setTimeSignature(beats: Int) {
-        beatsPerMeasure = beats.coerceIn(2, 8)
+        beatsPerMeasure = beats.coerceIn(MIN_BEATS, MAX_BEATS)
     }
 
     fun cleanup() {
         stop()
+        disposed = true
         scope.cancel()
-        try { normalTrack.release() } catch (_: Throwable) { }
-        try { accentTrack.release() } catch (_: Throwable) { }
+        try { normalTrack?.release() } catch (_: Throwable) { }
+        try { accentTrack?.release() } catch (_: Throwable) { }
     }
 }
