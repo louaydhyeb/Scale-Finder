@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
@@ -30,9 +31,11 @@ import com.lddev.scalefinder.ui.screens.HomeScreen
 import com.lddev.scalefinder.ui.screens.QuizScreen
 import com.lddev.scalefinder.ui.screens.ScaleExplorerScreen
 import com.lddev.scalefinder.ui.screens.TranscriptionScreen
+import com.lddev.scalefinder.ui.screens.TunerScreen
 
 enum class AppRoute(val route: String, val labelRes: Int, val icon: ImageVector) {
     HOME("home", R.string.nav_home, Icons.Default.Home),
+    TUNER("tuner", R.string.nav_tuner, Icons.Default.Build),
     SCALE_EXPLORER("scale_explorer", R.string.nav_scale_explorer, Icons.Default.Search),
     QUIZ("quiz", R.string.nav_quiz, Icons.Default.CheckCircle),
     TRANSCRIPTION("transcription", R.string.nav_transcription, Icons.Default.Create);
@@ -81,6 +84,9 @@ fun AppNavigation(
                         onToggleTheme = onToggleTheme,
                         isDark = isDark
                     )
+                }
+                composable(AppRoute.TUNER.route) {
+                    TunerScreen()
                 }
                 composable(AppRoute.SCALE_EXPLORER.route) {
                     ScaleExplorerScreen()
