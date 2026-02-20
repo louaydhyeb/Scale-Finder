@@ -44,6 +44,7 @@ fun SplashScreen(
     )
 
     LaunchedEffect(key1 = true) {
+        startAnimation = true
     }
 
     LaunchedEffect(alphaAnim.value) {
