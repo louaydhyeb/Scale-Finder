@@ -242,7 +242,7 @@ private fun FretboardCard(vm: HomeViewModel, notePlayer: NotePlayer) {
     OutlinedCard(Modifier.fillMaxWidth().semantics { contentDescription = fretboardCardDesc }) {
         Column(Modifier.padding(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.content_fretboard_icon), tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.fretboard), style = MaterialTheme.typography.titleMedium)
             }
             GuitarFretboard(

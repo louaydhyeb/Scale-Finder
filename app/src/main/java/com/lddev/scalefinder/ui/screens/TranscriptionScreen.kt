@@ -57,7 +57,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
-import com.lddev.scalefinder.model.Articulation
 import com.lddev.scalefinder.model.Tablature
 import com.lddev.scalefinder.model.Tuning
 import com.lddev.scalefinder.ui.TranscriptionViewModel
@@ -151,7 +150,7 @@ private fun IdleContent(
                 enabled = isModelAvailable,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.content_select_file))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.transcription_select_file))
             }
@@ -167,7 +166,7 @@ private fun ModelMissingBanner() {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 Icons.Default.Warning,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.content_model_missing),
                 tint = MaterialTheme.colorScheme.error
             )
             Spacer(Modifier.width(8.dp))
@@ -231,7 +230,7 @@ private fun DoneContent(
             Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.content_no_notes),
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(48.dp)
                 )
@@ -254,7 +253,7 @@ private fun DoneContent(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Default.Check,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.content_transcription_complete),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -265,7 +264,7 @@ private fun DoneContent(
                 )
             }
             TextButton(onClick = onReset) {
-                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.content_new_transcription), modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.transcription_new))
             }
@@ -286,13 +285,13 @@ private fun DoneContent(
 private fun MidiExportButton(exported: Boolean, onClick: () -> Unit) {
     if (exported) {
         FilledTonalButton(onClick = onClick) {
-            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Check, contentDescription = stringResource(R.string.content_midi_saved), modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(4.dp))
             Text(stringResource(R.string.transcription_midi_saved))
         }
     } else {
         FilledTonalButton(onClick = onClick) {
-            Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Share, contentDescription = stringResource(R.string.content_export_midi), modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(4.dp))
             Text(stringResource(R.string.transcription_export_midi))
         }
@@ -466,7 +465,7 @@ private fun ErrorContent(message: String?, onRetry: () -> Unit) {
         ) {
             Icon(
                 Icons.Default.Warning,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.content_error),
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(48.dp)
             )

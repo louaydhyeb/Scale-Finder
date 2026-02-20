@@ -54,6 +54,10 @@ class ScaleExplorerViewModel : ViewModel() {
 
     private fun midiToFreq(midi: Int): Double = 440.0 * 2.0.pow((midi - 69) / 12.0)
 
+    fun playFrequency(freq: Double) {
+        notePlayer.playGuitarNote(freq, durationMs = 1000)
+    }
+
     fun playNoteAtIndex(index: Int) {
         val notes = scaleNotes
         if (index !in notes.indices) return

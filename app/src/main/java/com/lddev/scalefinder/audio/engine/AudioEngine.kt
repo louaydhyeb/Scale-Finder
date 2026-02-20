@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.os.Build
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -11,16 +12,19 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class AudioEngine(
-    private val sampleRate: Int = 44100
+    private val sampleRate: Int = SAMPLE_RATE
 ) {
     var isStarted = false
         private set
 
     private var track: AudioTrack? = null
     private var scope: CoroutineScope? = null
+    private var executor: ExecutorService? = null
 
     private val dsps = CopyOnWriteArrayList<Dsp>()
 
@@ -73,6 +77,7 @@ class AudioEngine(
                 priority = Thread.MAX_PRIORITY
             }
         }
+        executor = audioThread
         val newScope = CoroutineScope(SupervisorJob() + audioThread.asCoroutineDispatcher())
         scope = newScope
         newScope.launch {
@@ -85,7 +90,6 @@ class AudioEngine(
                 }
                 newTrack.write(buf, 0, buf.size, AudioTrack.WRITE_BLOCKING)
             }
-            audioThread.shutdown()
         }
     }
 
@@ -94,12 +98,28 @@ class AudioEngine(
         isStarted = false
         scope?.cancel()
         scope = null
-        try { track?.stop() } catch (_: Throwable) { }
-        try { track?.release() } catch (_: Throwable) { }
+        try {
+            executor?.shutdown()
+            executor?.awaitTermination(500, TimeUnit.MILLISECONDS)
+        } catch (e: InterruptedException) {
+            Log.w("AudioEngine", "awaitTermination interrupted", e)
+        }
+        executor = null
+        try {
+            track?.stop()
+        } catch (e: Throwable) {
+            Log.w("AudioEngine", "stop failed", e)
+        }
+        try {
+            track?.release()
+        } catch (e: Throwable) {
+            Log.w("AudioEngine", "release failed", e)
+        }
         track = null
     }
 
     companion object {
+        const val SAMPLE_RATE = 44100
         /** 128 frames ≈ 2.9 ms @ 44 100 Hz. */
         private const val RENDER_FRAMES = 128
 

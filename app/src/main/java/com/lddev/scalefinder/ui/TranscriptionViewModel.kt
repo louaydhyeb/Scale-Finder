@@ -2,6 +2,7 @@ package com.lddev.scalefinder.ui
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +16,7 @@ import com.lddev.scalefinder.audio.transcription.TabMapper
 import com.lddev.scalefinder.model.Tablature
 import com.lddev.scalefinder.model.Tuning
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -34,7 +36,11 @@ class TranscriptionViewModel(application: Application) : AndroidViewModel(applic
         private set
     var detectedNotes by mutableStateOf<List<BasicPitchDetector.NoteEvent>>(emptyList())
         private set
+    var isExportingMidi by mutableStateOf(false)
+        private set
 
+    private var transcribeJob: Job? = null
+    private var remapJob: Job? = null
     private val decoder = AudioDecoder(application)
     private val detector = BasicPitchDetector(application)
 
@@ -45,7 +51,8 @@ class TranscriptionViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun transcribe(uri: Uri) {
-        viewModelScope.launch {
+        transcribeJob?.cancel()
+        transcribeJob = viewModelScope.launch {
             try {
                 state = State.DECODING
                 progress = 0.1f
@@ -81,7 +88,8 @@ class TranscriptionViewModel(application: Application) : AndroidViewModel(applic
         selectedTuning = tuning
         val notes = detectedNotes
         if (notes.isNotEmpty()) {
-            viewModelScope.launch {
+            remapJob?.cancel()
+            remapJob = viewModelScope.launch {
                 tablature = withContext(Dispatchers.Default) {
                     TabMapper.map(notes, tuning)
                 }
@@ -96,23 +104,34 @@ class TranscriptionViewModel(application: Application) : AndroidViewModel(applic
         val notes = detectedNotes
         if (notes.isEmpty()) return
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                getApplication<Application>().contentResolver
-                    .openOutputStream(destinationUri)?.use { out ->
-                        MidiExporter.exportTo(notes, out)
-                    }
+            isExportingMidi = true
+            try {
+                withContext(Dispatchers.IO) {
+                    getApplication<Application>().contentResolver
+                        .openOutputStream(destinationUri)?.use { out ->
+                            MidiExporter.exportTo(notes, out)
+                        }
+                }
+                midiExported = true
+            } catch (e: Exception) {
+                Log.e("TranscriptionViewModel", "Export MIDI failed", e)
+                errorMessage = e.message ?: "Export failed"
+            } finally {
+                isExportingMidi = false
             }
-            midiExported = true
         }
     }
 
     fun reset() {
+        transcribeJob?.cancel()
+        remapJob?.cancel()
         state = State.IDLE
         progress = 0f
         errorMessage = null
         tablature = null
         detectedNotes = emptyList()
         midiExported = false
+        isExportingMidi = false
     }
 
     override fun onCleared() {

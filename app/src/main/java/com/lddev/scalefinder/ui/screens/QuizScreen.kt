@@ -338,7 +338,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
 
         Icon(
             imageVector = if (accuracy >= 70) Icons.Default.CheckCircle else Icons.Default.Info,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.content_quiz_result),
             modifier = Modifier.size(64.dp),
             tint = when {
                 accuracy >= 70 -> CorrectGreen
@@ -388,7 +388,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Icon(Icons.Default.Star, contentDescription = null, tint = GoldStar, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.Star, contentDescription = stringResource(R.string.content_new_best), tint = GoldStar, modifier = Modifier.size(24.dp))
                 Text(
                     stringResource(R.string.quiz_new_best),
                     style = MaterialTheme.typography.titleMedium,

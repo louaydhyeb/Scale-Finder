@@ -31,8 +31,9 @@ class GuitarKarplusStrong(
     releaseMs = 60f
 ) {
 
-    @Volatile private var delayLine = FloatArray(1)
-    @Volatile private var delayIndex = 0
+    private val lock = Any()
+    private var delayLine = FloatArray(1)
+    private var delayIndex = 0
     @Volatile private var active = false
 
     private var lpState = 0f
@@ -54,25 +55,29 @@ class GuitarKarplusStrong(
         val n = exactDelay.toInt().coerceAtLeast(2)
         val frac = (exactDelay - n).toFloat()
 
-        apCoeff = if (frac > 0.001f) (1f - frac) / (1f + frac) else 0f
-        apPrevIn = 0f
-        apPrevOut = 0f
+        val excitation = shapeExcitation(n)
 
-        loss = exp(-6.91 / (decaySeconds * sampleRate)).toFloat()
-            .coerceIn(0.990f, 0.99999f)
+        synchronized(lock) {
+            apCoeff = if (frac > MIN_ALLPASS_FRAC) (1f - frac) / (1f + frac) else 0f
+            apPrevIn = 0f
+            apPrevOut = 0f
 
-        lpState = 0f
-        dcX1 = 0f
-        dcY1 = 0f
+            loss = exp(-6.91 / (decaySeconds * sampleRate)).toFloat()
+                .coerceIn(LOSS_MIN, LOSS_MAX)
 
-        body1.setPeakEq(sampleRate, 110f, 1.5f, 4f)
-        body1.reset()
-        body2.setPeakEq(sampleRate, 220f, 1.2f, 2f)
-        body2.reset()
+            lpState = 0f
+            dcX1 = 0f
+            dcY1 = 0f
 
-        delayIndex = 0
-        delayLine = shapeExcitation(n)
-        active = true
+            body1.setPeakEq(sampleRate, BODY_FREQ_1, BODY_Q_1, BODY_GAIN_1)
+            body1.reset()
+            body2.setPeakEq(sampleRate, BODY_FREQ_2, BODY_Q_2, BODY_GAIN_2)
+            body2.reset()
+
+            delayIndex = 0
+            delayLine = excitation
+            active = true
+        }
     }
 
     private fun shapeExcitation(n: Int): FloatArray {
@@ -100,41 +105,43 @@ class GuitarKarplusStrong(
     override fun generateSample(): Float {
         if (!active) return 0f
 
-        val buf = delayLine
-        val size = buf.size
-        val idx = delayIndex % size
-        val output = buf[idx]
-        val nextIdx = (idx + 1) % size
-        val next = buf[nextIdx]
+        synchronized(lock) {
+            val buf = delayLine
+            val size = buf.size
+            val idx = delayIndex % size
+            val output = buf[idx]
+            val nextIdx = (idx + 1) % size
+            val next = buf[nextIdx]
 
-        val blend = 0.5f + (1f - brightness) * 0.35f
-        val averaged = output * (1f - blend) + next * blend
+            val blend = 0.5f + (1f - brightness) * 0.35f
+            val averaged = output * (1f - blend) + next * blend
 
-        lpState += 0.45f * (averaged - lpState)
+            lpState += LP_COEFF * (averaged - lpState)
 
-        val decayed = lpState * loss
+            val decayed = lpState * loss
 
-        val tuned: Float
-        if (apCoeff != 0f) {
-            tuned = apCoeff * decayed + apPrevIn - apCoeff * apPrevOut
-            apPrevIn = decayed
-            apPrevOut = tuned
-        } else {
-            tuned = decayed
+            val tuned: Float
+            if (apCoeff != 0f) {
+                tuned = apCoeff * decayed + apPrevIn - apCoeff * apPrevOut
+                apPrevIn = decayed
+                apPrevOut = tuned
+            } else {
+                tuned = decayed
+            }
+
+            buf[idx] = tuned
+            delayIndex = nextIdx
+
+            val dc = output - dcX1 + DC_BLOCKER_COEFF * dcY1
+            dcX1 = output
+            dcY1 = dc
+
+            val bodied = body2.process(body1.process(dc))
+
+            if (abs(output) < SILENCE_THRESHOLD && abs(lpState) < SILENCE_THRESHOLD) active = false
+
+            return bodied
         }
-
-        buf[idx] = tuned
-        delayIndex = nextIdx
-
-        val dc = output - dcX1 + 0.995f * dcY1
-        dcX1 = output
-        dcY1 = dc
-
-        val bodied = body2.process(body1.process(dc))
-
-        if (abs(output) < 1e-8f && abs(lpState) < 1e-8f) active = false
-
-        return bodied
     }
 
     private class Biquad {
@@ -167,5 +174,20 @@ class GuitarKarplusStrong(
         fun reset() {
             x1 = 0f; x2 = 0f; y1 = 0f; y2 = 0f
         }
+    }
+
+    companion object {
+        private const val MIN_ALLPASS_FRAC = 0.001f
+        private const val LOSS_MIN = 0.990f
+        private const val LOSS_MAX = 0.99999f
+        private const val LP_COEFF = 0.45f
+        private const val DC_BLOCKER_COEFF = 0.995f
+        private const val SILENCE_THRESHOLD = 1e-8f
+        private const val BODY_FREQ_1 = 110f
+        private const val BODY_Q_1 = 1.5f
+        private const val BODY_GAIN_1 = 4f
+        private const val BODY_FREQ_2 = 220f
+        private const val BODY_Q_2 = 1.2f
+        private const val BODY_GAIN_2 = 2f
     }
 }

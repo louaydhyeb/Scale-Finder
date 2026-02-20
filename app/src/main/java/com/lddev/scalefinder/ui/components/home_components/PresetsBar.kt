@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.lddev.scalefinder.R
 import com.lddev.scalefinder.model.Tuning
 import com.lddev.scalefinder.ui.HomeViewModel
+import com.lddev.scalefinder.ui.ProgressionPreset
 import kotlinx.coroutines.delay
 
 @Composable
@@ -50,9 +51,9 @@ fun PresetsBar(vm: HomeViewModel) {
         )
 
         val presets = listOf(
-            Triple(stringResource(R.string.preset_pop_progression), stringResource(R.string.preset_pop_description)) { vm.applyProgressionPreset("I-V-vi-IV (C)") },
-            Triple(stringResource(R.string.preset_jazz_progression), stringResource(R.string.preset_jazz_description)) { vm.applyProgressionPreset("ii-V-I (G)") },
-            Triple(stringResource(R.string.preset_blues), stringResource(R.string.preset_blues_description)) { vm.applyProgressionPreset("Blues (A)") },
+            Triple(stringResource(R.string.preset_pop_progression), stringResource(R.string.preset_pop_description)) { vm.applyProgressionPreset(ProgressionPreset.POP) },
+            Triple(stringResource(R.string.preset_jazz_progression), stringResource(R.string.preset_jazz_description)) { vm.applyProgressionPreset(ProgressionPreset.JAZZ) },
+            Triple(stringResource(R.string.preset_blues), stringResource(R.string.preset_blues_description)) { vm.applyProgressionPreset(ProgressionPreset.BLUES) },
             Triple(stringResource(R.string.preset_standard), stringResource(R.string.preset_standard_description)) { vm.setTuning(Tuning.STANDARD) },
             Triple(stringResource(R.string.preset_drop_d), stringResource(R.string.preset_drop_d_description)) { vm.setTuning(Tuning.DROP_D) },
             Triple(stringResource(R.string.preset_frets_0_12), stringResource(R.string.preset_frets_0_12_description)) { vm.applyFretPreset(0, 12) },

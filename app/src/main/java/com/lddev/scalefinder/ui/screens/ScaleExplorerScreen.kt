@@ -43,7 +43,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +59,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
-import com.lddev.scalefinder.audio.NotePlayer
 import com.lddev.scalefinder.model.Note
 import com.lddev.scalefinder.model.ScaleType
 import com.lddev.scalefinder.ui.ScaleExplorerViewModel
@@ -73,9 +71,6 @@ fun ScaleExplorerScreen(
     modifier: Modifier = Modifier,
     vm: ScaleExplorerViewModel = viewModel()
 ) {
-    val notePlayer = remember { NotePlayer() }
-    DisposableEffect(Unit) { onDispose { notePlayer.dispose() } }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -135,7 +130,7 @@ fun ScaleExplorerScreen(
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.content_fretboard_options), tint = MaterialTheme.colorScheme.primary)
                     Text(stringResource(R.string.scale_explorer_fretboard), style = MaterialTheme.typography.titleMedium)
                 }
                 GuitarFretboard(
@@ -148,7 +143,7 @@ fun ScaleExplorerScreen(
                     invertStrings = vm.invertFretboard,
                     onNoteTapped = { stringIdx, fret, _ ->
                         val freq = vm.selectedTuning.getFrequency(stringIdx, fret)
-                        notePlayer.playGuitarNote(freq, durationMs = 1000)
+                        vm.playFrequency(freq)
                     }
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -218,18 +213,18 @@ private fun ScalePickerRow(vm: ScaleExplorerViewModel) {
 
         if (vm.isPlayingScale) {
             OutlinedButton(onClick = { vm.stopScale() }) {
-                Icon(Icons.Default.Clear, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.content_stop_scale), modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.stop_progression))
             }
         } else {
             OutlinedButton(onClick = { vm.playScaleAscending() }) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.content_play_ascending), modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.play_scale_ascending))
             }
             OutlinedButton(onClick = { vm.playScaleDescending() }) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.content_play_descending), modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.play_scale_descending))
             }

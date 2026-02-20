@@ -52,10 +52,11 @@ object ChordVoicings {
     private val E_SHAPES: Map<ChordQuality, List<Int>> = mapOf(
         ChordQuality.MAJOR          to listOf(0, 2, 2, 1, 0, 0),
         ChordQuality.MINOR          to listOf(0, 2, 2, 0, 0, 0),
+        ChordQuality.AUGMENTED      to listOf(0, 2, 2, 1, 0, -1),
         ChordQuality.DOMINANT7      to listOf(0, 2, 0, 1, 0, 0),
         ChordQuality.MAJOR7         to listOf(0, 2, 1, 1, 0, 0),
         ChordQuality.MINOR7         to listOf(0, 2, 0, 0, 0, 0),
-        ChordQuality.DIMINISHED     to listOf(0, 1, 2, 0, -1, -1),
+        ChordQuality.DIMINISHED     to listOf(-1, -1, 1, 2, 1, -1),
         ChordQuality.HALF_DIMINISHED to listOf(0, 1, 0, 0, -1, -1)
     )
 
@@ -64,6 +65,7 @@ object ChordVoicings {
     private val A_SHAPES: Map<ChordQuality, List<Int>> = mapOf(
         ChordQuality.MAJOR          to listOf(-1, 0, 2, 2, 2, 0),
         ChordQuality.MINOR          to listOf(-1, 0, 2, 2, 1, 0),
+        ChordQuality.AUGMENTED      to listOf(-1, 0, 2, 1, 1, 0),
         ChordQuality.DOMINANT7      to listOf(-1, 0, 2, 0, 2, 0),
         ChordQuality.MAJOR7         to listOf(-1, 0, 2, 1, 2, 0),
         ChordQuality.MINOR7         to listOf(-1, 0, 2, 0, 1, 0),

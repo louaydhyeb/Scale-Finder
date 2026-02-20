@@ -175,6 +175,21 @@
 
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>
+    <string name="content_fretboard_icon">Fretboard</string>
+    <string name="content_fretboard_options">Fretboard options</string>
+    <string name="content_select_file">Select file</string>
+    <string name="content_model_missing">Model missing warning</string>
+    <string name="content_transcription_complete">Transcription complete</string>
+    <string name="content_no_notes">No notes detected</string>
+    <string name="content_new_transcription">New transcription</string>
+    <string name="content_export_midi">Export MIDI</string>
+    <string name="content_midi_saved">MIDI saved</string>
+    <string name="content_error">Error</string>
+    <string name="content_quiz_result">Quiz result</string>
+    <string name="content_new_best">New best score</string>
+    <string name="content_stop_scale">Stop scale playback</string>
+    <string name="content_play_ascending">Play scale ascending</string>
+    <string name="content_play_descending">Play scale descending</string>
     <string name="content_settings_menu">Settings menu</string>
     <string name="content_tuning_menu">Tuning menu</string>
     <string name="content_root_selector">Root selector</string>

@@ -1,6 +1,7 @@
 package com.lddev.scalefinder.model
 
 import kotlin.math.floor
+import kotlin.math.pow
 
 enum class Note(val semitone: Int, val label: String) {
     C(0, "C"),
@@ -28,6 +29,7 @@ enum class Note(val semitone: Int, val label: String) {
 enum class ChordQuality(val display: String, val intervals: List<Int>) {
     MAJOR("Maj", listOf(0, 4, 7)),
     MINOR("min", listOf(0, 3, 7)),
+    AUGMENTED("aug", listOf(0, 4, 8)),
     DOMINANT7("7", listOf(0, 4, 7, 10)),
     MAJOR7("Maj7", listOf(0, 4, 7, 11)),
     MINOR7("m7", listOf(0, 3, 7, 10)),
@@ -102,8 +104,8 @@ object Theory {
                 chordToneCount.toDouble() / chord.tones.size
             }
             val avgFit = if (fitScores.isEmpty()) 0.0 else fitScores.sum() / fitScores.size
-            val penalty = voiceLeadingPenalty(scale, prog)
-            val score = avgFit - penalty
+            val bonus = rootMatchBonus(scale, prog)
+            val score = avgFit + bonus
             val why = buildString {
                 append("Fits ")
                 append(floor(avgFit * 100).toInt())
@@ -113,13 +115,16 @@ object Theory {
         }
         return suggestions
             .sortedByDescending { it.score }
-            .take(12)
+            .take(MAX_SUGGESTIONS)
     }
 
-    private fun voiceLeadingPenalty(scale: Scale, prog: List<Chord>): Double {
-        // Simple heuristic: prefer scales whose root matches common chord roots or first chord root
-        val firstRootMatch = if (scale.root == prog.first().root) 0.0 else 0.05
-        return firstRootMatch
+    private const val MAX_SUGGESTIONS = 12
+
+    private fun rootMatchBonus(scale: Scale, prog: List<Chord>): Double {
+        val roots = prog.map { it.root }.toSet()
+        val firstMatch = if (scale.root == prog.first().root) 0.05 else 0.0
+        val anyMatch = if (roots.any { it == scale.root }) 0.02 else 0.0
+        return firstMatch + anyMatch
     }
 }
 
@@ -130,21 +135,6 @@ data class ScaleSuggestionRanked(val scale: Scale, val score: Double, val ration
 data class DiatonicChord(val degree: String, val chord: Chord)
 
 object ScaleFormulas {
-    private val majorIntervals = listOf(0, 2, 4, 5, 7, 9, 11)
-    private val degreeNames = listOf("1", "2", "3", "4", "5", "6", "7")
-
-    fun intervalFormula(scaleType: ScaleType): List<String> {
-        return scaleType.intervals.map { interval ->
-            val majorIdx = majorIntervals.indexOf(interval)
-            if (majorIdx >= 0) return@map degreeNames[majorIdx]
-
-            for (i in majorIntervals.indices) {
-                if (interval == majorIntervals[i] - 1) return@map "♭${degreeNames[i]}"
-                if (interval == majorIntervals[i] + 1) return@map "♯${degreeNames[i]}"
-            }
-            interval.toString()
-        }
-    }
 
     fun scaleNotes(scale: Scale): List<Note> {
         return scale.type.intervals.map { Note.fromSemitone(scale.root.semitone + it) }
@@ -152,7 +142,7 @@ object ScaleFormulas {
 
     fun diatonicChords(scale: Scale): List<DiatonicChord> {
         val notes = scaleNotes(scale)
-        if (notes.size < 5) return emptyList()
+        if (notes.size != 7) return emptyList()
 
         val romanMajor = listOf("I", "II", "III", "IV", "V", "VI", "VII")
         val romanMinor = listOf("i", "ii", "iii", "iv", "v", "vi", "vii")
@@ -173,7 +163,7 @@ object ScaleFormulas {
                 thirdInterval == 3 && fifthInterval == 6 ->
                     ChordQuality.DIMINISHED to "${romanMinor[degree]}°"
                 thirdInterval == 4 && fifthInterval == 8 ->
-                    ChordQuality.MAJOR to "${romanMajor[degree]}+"
+                    ChordQuality.AUGMENTED to "${romanMajor[degree]}+"
                 else ->
                     ChordQuality.MAJOR to romanMajor[degree]
             }
@@ -215,7 +205,7 @@ data class Tuning(val name: String, val openNotes: List<Note>) {
     fun getFrequency(stringIndex: Int, fret: Int): Double {
         val midiNote = getOpenStringMidi(stringIndex) + fret
         // MIDI note 69 is A4 = 440 Hz
-        return 440.0 * Math.pow(2.0, (midiNote - 69) / 12.0)
+        return 440.0 * 2.0.pow((midiNote - 69) / 12.0)
     }
     
     companion object {
