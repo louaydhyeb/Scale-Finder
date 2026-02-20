@@ -154,6 +154,25 @@
     <string name="quiz_your_avg">Your average: %1$d%%</string>
     <string name="quiz_total_quizzes">Total quizzes played: %1$d</string>
 
+    <!-- Transcription -->
+    <string name="nav_transcription">Tab</string>
+    <string name="transcription_title">Audio → Tablature</string>
+    <string name="transcription_description">Select an audio or video file to transcribe it into guitar tablature using AI pitch detection (Basic Pitch).</string>
+    <string name="transcription_select_file">Select Audio / Video</string>
+    <string name="transcription_model_missing">Model file not found. Place basic_pitch.tflite in app/src/main/assets/.</string>
+    <string name="transcription_decoding">Decoding audio…</string>
+    <string name="transcription_analyzing">Analyzing pitches…</string>
+    <string name="transcription_mapping">Mapping to tablature…</string>
+    <string name="transcription_done_summary">%1$d notes detected → %2$d tab events</string>
+    <string name="transcription_no_notes">No notes detected in this file.</string>
+    <string name="transcription_error">Transcription failed</string>
+    <string name="transcription_try_again">Try Again</string>
+    <string name="transcription_new">New</string>
+    <string name="transcription_tab_title">Tablature</string>
+    <string name="transcription_ascii_title">ASCII Tab</string>
+    <string name="transcription_export_midi">Export MIDI</string>
+    <string name="transcription_midi_saved">MIDI Saved ✓</string>
+
     <!-- Content Descriptions -->
     <string name="content_fretboard_card">Fretboard card</string>
     <string name="content_settings_menu">Settings menu</string>
