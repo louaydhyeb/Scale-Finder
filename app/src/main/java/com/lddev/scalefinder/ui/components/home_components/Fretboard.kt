@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.lddev.scalefinder.model.FretboardTheme
 import com.lddev.scalefinder.model.Note
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
@@ -52,16 +53,16 @@ fun GuitarFretboard(
     highContrast: Boolean = false,
     invertStrings: Boolean = false,
     showNoteNames: Boolean = false,
+    theme: FretboardTheme = FretboardTheme.ROSEWOOD,
     onNoteTapped: (stringIndex: Int, fret: Int, note: Note) -> Unit = { _, _, _ -> }
 ) {
     val strings = tuning.openNotes
+    val tc = theme.colors
 
-    // Scale / chord overlay colours (from theme)
     val rootColor = MaterialTheme.colorScheme.primary
     val scaleColor = MaterialTheme.colorScheme.secondary
     val chordColor = MaterialTheme.colorScheme.tertiary
-    // Note-name text – warm light colour so it reads on the dark wood
-    val noteColor = Color(0xFFE0D0C0).copy(alpha = 0.6f)
+    val noteColor = tc.noteNameColor.copy(alpha = 0.6f)
 
     var boxSize = remember { IntSize.Zero }
     Box(
@@ -104,50 +105,51 @@ fun GuitarFretboard(
             val stringSpacing = height / (strings.size + 1)
             val fretSpacing = width / (fretCount + 1)
 
-            // ── 1. ROSEWOOD BACKGROUND ──────────────────────────────
-            // Base fill – dark rosewood
-            drawRect(color = Color(0xFF2E1B0E))
+            // ── 1. BACKGROUND ────────────────────────────────────────
+            drawRect(color = tc.background)
 
-            // Subtle edge darkening (simulates the fretboard curvature)
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Black.copy(alpha = 0.25f),
-                        Color.Transparent,
-                        Color.Transparent,
-                        Color.Black.copy(alpha = 0.20f)
+            if (tc.edgeDarkenTop > 0f || tc.edgeDarkenBottom > 0f) {
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = tc.edgeDarkenTop),
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Black.copy(alpha = tc.edgeDarkenBottom)
+                        )
                     )
                 )
-            )
-
-            // Fine grain lines – deterministic seed keeps the pattern stable
-            val grain = Random(42)
-            repeat(60) {
-                val y = grain.nextFloat() * height
-                val drift = grain.nextFloat() * 8f - 4f
-                val dark = grain.nextBoolean()
-                val alpha = grain.nextFloat() * 0.10f + 0.02f
-                val sw = grain.nextFloat() * 2f + 0.5f
-                drawLine(
-                    color = if (dark) Color.Black.copy(alpha = alpha)
-                            else Color(0xFF5D4037).copy(alpha = alpha * 0.8f),
-                    start = Offset(0f, y),
-                    end = Offset(width, y + drift),
-                    strokeWidth = sw,
-                    cap = StrokeCap.Round
-                )
             }
-            // A few wider, more prominent grain features
-            repeat(10) {
-                val y = grain.nextFloat() * height
-                val drift = grain.nextFloat() * 12f - 6f
-                drawLine(
-                    color = Color.Black.copy(alpha = grain.nextFloat() * 0.06f + 0.03f),
-                    start = Offset(0f, y),
-                    end = Offset(width, y + drift),
-                    strokeWidth = grain.nextFloat() * 4f + 2f,
-                    cap = StrokeCap.Round
-                )
+
+            val grainRange = tc.grainAlphaRange
+            if (grainRange.start > 0f || grainRange.endInclusive > 0f) {
+                val grain = Random(42)
+                repeat(60) {
+                    val y = grain.nextFloat() * height
+                    val drift = grain.nextFloat() * 8f - 4f
+                    val dark = grain.nextBoolean()
+                    val alpha = grain.nextFloat() * (grainRange.endInclusive - grainRange.start) + grainRange.start
+                    val sw = grain.nextFloat() * 2f + 0.5f
+                    drawLine(
+                        color = if (dark) tc.grainDark.copy(alpha = alpha)
+                                else tc.grainLight.copy(alpha = alpha * 0.8f),
+                        start = Offset(0f, y),
+                        end = Offset(width, y + drift),
+                        strokeWidth = sw,
+                        cap = StrokeCap.Round
+                    )
+                }
+                repeat(10) {
+                    val y = grain.nextFloat() * height
+                    val drift = grain.nextFloat() * 12f - 6f
+                    drawLine(
+                        color = tc.grainDark.copy(alpha = grain.nextFloat() * 0.06f + 0.03f),
+                        start = Offset(0f, y),
+                        end = Offset(width, y + drift),
+                        strokeWidth = grain.nextFloat() * 4f + 2f,
+                        cap = StrokeCap.Round
+                    )
+                }
             }
 
             // ── 2. METALLIC FRETS ───────────────────────────────────
@@ -159,41 +161,36 @@ fun GuitarFretboard(
                 val isNut = f == 0
 
                 if (isNut) {
-                    // Nut – wider, bone / ivory coloured
                     val nutW = 10f
                     drawLine(
-                        color = Color(0xFF303030),
+                        color = tc.nutOutline,
                         start = Offset(x, fretTopY), end = Offset(x, fretBotY),
                         strokeWidth = nutW + 3f
                     )
                     drawLine(
-                        color = Color(0xFFF0EBD8), // bone
+                        color = tc.nutBody,
                         start = Offset(x, fretTopY), end = Offset(x, fretBotY),
                         strokeWidth = nutW
                     )
                     drawLine(
-                        color = Color(0xFFFFF8EE).copy(alpha = 0.7f),
+                        color = tc.nutHighlight.copy(alpha = 0.7f),
                         start = Offset(x + 1f, fretTopY), end = Offset(x + 1f, fretBotY),
                         strokeWidth = nutW * 0.3f
                     )
                 } else {
-                    // Regular fret – silver with shadow + highlight
                     val fw = if (highContrast) 5f else 4f
-                    // Shadow
                     drawLine(
-                        color = Color(0xFF505050),
+                        color = tc.fretShadow,
                         start = Offset(x, fretTopY), end = Offset(x, fretBotY),
                         strokeWidth = fw + 2f
                     )
-                    // Body
                     drawLine(
-                        color = Color(0xFFB0B0B0),
+                        color = tc.fretBody,
                         start = Offset(x, fretTopY), end = Offset(x, fretBotY),
                         strokeWidth = fw
                     )
-                    // Centre highlight
                     drawLine(
-                        color = Color(0xFFE0E0E0),
+                        color = tc.fretHighlight,
                         start = Offset(x + 0.5f, fretTopY), end = Offset(x + 0.5f, fretBotY),
                         strokeWidth = fw * 0.35f
                     )
@@ -220,25 +217,22 @@ fun GuitarFretboard(
                 val startX = fretSpacing
                 val endX   = width - fretSpacing * 0.25f
 
-                // Shadow underneath
                 drawLine(
-                    color = Color.Black.copy(alpha = 0.30f),
+                    color = Color.Black.copy(alpha = tc.stringShadowAlpha),
                     start = Offset(startX, y + 1.5f),
                     end   = Offset(endX,   y + 1.5f),
                     strokeWidth = thick + 1f,
                     cap = StrokeCap.Round
                 )
-                // Main string body
                 drawLine(
-                    color = if (isWound) Color(0xFFB89B6C) else Color(0xFFC8C8C8),
+                    color = if (isWound) tc.woundString else tc.plainString,
                     start = Offset(startX, y),
                     end   = Offset(endX,   y),
                     strokeWidth = thick,
                     cap = StrokeCap.Round
                 )
-                // Specular highlight
                 drawLine(
-                    color = Color.White.copy(alpha = if (isWound) 0.18f else 0.32f),
+                    color = Color.White.copy(alpha = if (isWound) tc.woundSpecularAlpha else tc.plainSpecularAlpha),
                     start = Offset(startX, y - thick * 0.2f),
                     end   = Offset(endX,   y - thick * 0.2f),
                     strokeWidth = thick * 0.3f,
@@ -256,21 +250,18 @@ fun GuitarFretboard(
                                else          listOf(height * 0.5f)
 
                 positions.forEach { cy ->
-                    // Shadow
                     drawCircle(
-                        color = Color.Black.copy(alpha = 0.40f),
+                        color = Color.Black.copy(alpha = tc.inlayShadowAlpha),
                         radius = dotR,
                         center = Offset(x + 1f, cy + 1f)
                     )
-                    // Pearl body
                     drawCircle(
-                        color = Color(0xFFF0ECE8),
+                        color = tc.inlayBody,
                         radius = dotR,
                         center = Offset(x, cy)
                     )
-                    // Highlight spot (upper-left)
                     drawCircle(
-                        color = Color.White.copy(alpha = 0.50f),
+                        color = Color.White.copy(alpha = tc.inlayHighlightAlpha),
                         radius = dotR * 0.40f,
                         center = Offset(x - dotR * 0.20f, cy - dotR * 0.20f)
                     )

@@ -53,16 +53,13 @@ import com.lddev.scalefinder.ui.components.home_components.GuitarFretboard
 import com.lddev.scalefinder.ui.components.home_components.MetronomeControls
 import com.lddev.scalefinder.ui.components.home_components.PresetsBar
 import com.lddev.scalefinder.ui.components.home_components.ProgressionEditor
-import com.lddev.scalefinder.ui.components.home_components.SettingsMenu
 import com.lddev.scalefinder.ui.components.home_components.Stepper
 import com.lddev.scalefinder.ui.components.home_components.SuggestionsPanel
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    vm: HomeViewModel = viewModel(),
-    onToggleTheme: () -> Unit = {},
-    isDark: Boolean = false
+    vm: HomeViewModel = viewModel()
 ) {
     val haptics = LocalHapticFeedback.current
     val notePlayer = remember { NotePlayer() }
@@ -76,7 +73,7 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        TitleBar(isDark = isDark, onToggleTheme = onToggleTheme, vm = vm)
+        TitleBar()
 
         Spacer(Modifier.height(8.dp))
         PresetsBar(vm)
@@ -134,49 +131,30 @@ fun HomeScreen(
 }
 
 @Composable
-private fun TitleBar(isDark: Boolean, onToggleTheme: () -> Unit, vm: HomeViewModel) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                ) { append(stringResource(R.string.app_title_scale)) }
-                append(" ")
-                withStyle(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) { append(stringResource(R.string.app_title_finder)) }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-        )
-
-        SettingsMenu(
-            isDark = isDark,
-            onToggleTheme = onToggleTheme,
-            selectedTuning = vm.selectedTuning,
-            onTuningChanged = vm::setTuning,
-            highContrast = vm.highContrast,
-            onToggleHighContrast = vm::toggleHighContrast,
-            invert = vm.invertFretboard,
-            onToggleInvert = vm::toggleInvertFretboard,
-            showNoteNames = vm.showNoteNames,
-            onToggleShowNoteNames = vm::toggleShowNoteNames
-        )
-    }
+private fun TitleBar() {
+    Text(
+        text = buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.tertiary
+                        )
+                    ),
+                    fontWeight = FontWeight.Bold
+                )
+            ) { append(stringResource(R.string.app_title_scale)) }
+            append(" ")
+            withStyle(
+                style = SpanStyle(
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Bold
+                )
+            ) { append(stringResource(R.string.app_title_finder)) }
+        },
+        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+    )
 }
 
 @Composable
@@ -254,6 +232,7 @@ private fun FretboardCard(vm: HomeViewModel, notePlayer: NotePlayer) {
                 chordTones = vm.chordTones,
                 highContrast = vm.highContrast,
                 invertStrings = vm.invertFretboard,
+                theme = vm.fretboardTheme,
                 highlights = voicingHighlights,
                 onNoteTapped = { stringIdx, fret, _ ->
                     val freq = vm.selectedTuning.getFrequency(stringIdx, fret)

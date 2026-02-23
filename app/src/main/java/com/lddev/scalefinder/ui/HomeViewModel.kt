@@ -15,6 +15,7 @@ import com.lddev.scalefinder.model.ChordQuality
 import com.lddev.scalefinder.model.ChordVoicing
 import com.lddev.scalefinder.model.ChordVoicings
 import com.lddev.scalefinder.model.Note
+import com.lddev.scalefinder.model.FretboardTheme
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,8 @@ class HomeViewModel : ViewModel() {
     var invertFretboard by mutableStateOf(true)
         private set
     var showNoteNames by mutableStateOf(false)
+        private set
+    var fretboardTheme by mutableStateOf(FretboardTheme.ROSEWOOD)
         private set
     var metronomeBPM by mutableIntStateOf(DEFAULT_BPM)
         private set
@@ -166,6 +169,7 @@ class HomeViewModel : ViewModel() {
     fun toggleHighContrast() { highContrast = !highContrast }
     fun toggleInvertFretboard() { invertFretboard = !invertFretboard }
     fun toggleShowNoteNames() { showNoteNames = !showNoteNames }
+    fun updateFretboardTheme(theme: FretboardTheme) { fretboardTheme = theme }
     
     // Metronome controls
     fun updateMetronomeBPM(bpm: Int) { 
