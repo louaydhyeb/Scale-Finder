@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -63,13 +64,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
+import com.lddev.scalefinder.ui.HomeViewModel
 import com.lddev.scalefinder.ui.screens.HomeScreen
 import com.lddev.scalefinder.ui.screens.QuizScreen
 import com.lddev.scalefinder.ui.screens.ScaleExplorerScreen
+import com.lddev.scalefinder.ui.screens.SettingsScreen
 import com.lddev.scalefinder.ui.screens.TranscriptionScreen
 import com.lddev.scalefinder.ui.screens.TunerScreen
 import kotlin.math.roundToInt
+
+private const val SETTINGS_ROUTE = "settings"
 
 private const val PREFS_NAME = "scalefinder_prefs"
 private const val KEY_TUTORIAL_DONE = "tutorial_done"
@@ -118,6 +124,8 @@ fun AppNavigation(
             .edit { putBoolean(KEY_TUTORIAL_DONE, true) }
     }
 
+    val homeVm: HomeViewModel = viewModel()
+
     Box(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxSize()) {
             NavigationRail(
@@ -158,6 +166,31 @@ fun AppNavigation(
                         }
                     )
                 }
+
+                Spacer(Modifier.weight(1f))
+
+                val isSettings = currentDestination?.route == SETTINGS_ROUTE
+                NavigationRailItem(
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_nav_settings),
+                            contentDescription = stringResource(R.string.settings_title),
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    label = { Text(stringResource(R.string.settings_title)) },
+                    selected = isSettings,
+                    onClick = {
+                        navController.navigate(SETTINGS_ROUTE) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
 
             Scaffold { innerPadding ->
@@ -167,10 +200,7 @@ fun AppNavigation(
                     modifier = Modifier.padding(innerPadding)
                 ) {
                     composable(AppRoute.HOME.route) {
-                        HomeScreen(
-                            onToggleTheme = onToggleTheme,
-                            isDark = isDark
-                        )
+                        HomeScreen(vm = homeVm)
                     }
                     composable(AppRoute.TUNER.route) {
                         TunerScreen()
@@ -183,6 +213,13 @@ fun AppNavigation(
                     }
                     composable(AppRoute.TRANSCRIPTION.route) {
                         TranscriptionScreen()
+                    }
+                    composable(SETTINGS_ROUTE) {
+                        SettingsScreen(
+                            vm = homeVm,
+                            isDark = isDark,
+                            onToggleTheme = onToggleTheme
+                        )
                     }
                 }
             }
