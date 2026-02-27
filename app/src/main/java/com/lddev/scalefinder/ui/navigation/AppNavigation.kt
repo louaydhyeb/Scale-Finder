@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -67,6 +70,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
 import com.lddev.scalefinder.ui.HomeViewModel
+import com.lddev.scalefinder.ui.screens.CircleOfFifthsScreen
 import com.lddev.scalefinder.ui.screens.HomeScreen
 import com.lddev.scalefinder.ui.screens.QuizScreen
 import com.lddev.scalefinder.ui.screens.ScaleExplorerScreen
@@ -94,6 +98,7 @@ enum class AppRoute(
     HOME("home", R.string.nav_home, NavIcon.Drawable(R.drawable.ic_nav_home, tinted = true), R.string.tutorial_home_desc),
     TUNER("tuner", R.string.nav_tuner, NavIcon.Drawable(R.drawable.ic_nav_tuner, tinted = true), R.string.tutorial_tuner_desc),
     SCALE_EXPLORER("scale_explorer", R.string.nav_scale_explorer, NavIcon.Drawable(R.drawable.ic_nav_scales, tinted = true), R.string.tutorial_scales_desc),
+    CIRCLE_OF_FIFTHS("circle_of_fifths", R.string.nav_circle_of_fifths, NavIcon.Drawable(R.drawable.ic_nav_circle, tinted = true), R.string.tutorial_circle_desc),
     QUIZ("quiz", R.string.nav_quiz, NavIcon.Drawable(R.drawable.ic_nav_quiz, tinted = true), R.string.tutorial_quiz_desc),
     TRANSCRIPTION("transcription", R.string.nav_transcription, NavIcon.Drawable(R.drawable.ic_nav_tab, tinted = true), R.string.tutorial_tab_desc);
 }
@@ -129,6 +134,7 @@ fun AppNavigation(
     Box(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxSize()) {
             NavigationRail(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 AppRoute.entries.forEachIndexed { index, screen ->
@@ -167,7 +173,7 @@ fun AppNavigation(
                     )
                 }
 
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(8.dp))
 
                 val isSettings = currentDestination?.route == SETTINGS_ROUTE
                 NavigationRailItem(
@@ -207,6 +213,9 @@ fun AppNavigation(
                     }
                     composable(AppRoute.SCALE_EXPLORER.route) {
                         ScaleExplorerScreen()
+                    }
+                    composable(AppRoute.CIRCLE_OF_FIFTHS.route) {
+                        CircleOfFifthsScreen()
                     }
                     composable(AppRoute.QUIZ.route) {
                         QuizScreen()

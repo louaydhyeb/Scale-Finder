@@ -90,7 +90,14 @@
     <!-- Scale Explorer -->
     <string name="nav_home">Home</string>
     <string name="nav_scale_explorer">Scales</string>
+    <string name="nav_circle_of_fifths">Circle</string>
     <string name="scale_explorer_title">Scale Explorer</string>
+    <string name="circle_of_fifths_title">Circle of Fifths</string>
+    <string name="circle_of_fifths_subtitle">Tap any major or minor key to explore relatives, accidentals, and common progressions.</string>
+    <string name="circle_selected_major">Selected Major: %1$s (relative minor %2$s)</string>
+    <string name="circle_selected_minor">Selected Minor: %1$s (relative major %2$s)</string>
+    <string name="circle_accidentals">Key signature: %1$s</string>
+    <string name="circle_progression">Common progression: %1$s</string>
     <string name="select_root">Root</string>
     <string name="select_scale_type">Scale Type</string>
     <string name="scale_notes">Notes</string>
@@ -211,6 +218,7 @@
     <string name="tutorial_home_desc">Your workspace — build chord progressions, visualize the fretboard, and practice with the metronome.</string>
     <string name="tutorial_tuner_desc">Tune your guitar in real time with the built-in chromatic tuner.</string>
     <string name="tutorial_scales_desc">Browse scales by root and type, see notes, formulas, and diatonic chords.</string>
+    <string name="tutorial_circle_desc">Navigate the circle of fifths interactively and switch between major keys and relative minors.</string>
     <string name="tutorial_quiz_desc">Test your ear and theory knowledge with interactive quizzes.</string>
     <string name="tutorial_tab_desc">Transcribe audio or video files into guitar tablature using AI pitch detection.</string>
 
