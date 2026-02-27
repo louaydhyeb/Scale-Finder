@@ -22,7 +22,6 @@ import java.nio.channels.FileChannel
  * the last window is zero-padded.
  */
 class BasicPitchDetector(private val context: Context) {
-
     companion object {
         private const val MODEL_FILENAME = "basic_pitch.tflite"
         private const val MIDI_OFFSET = 21
@@ -46,23 +45,24 @@ class BasicPitchDetector(private val context: Context) {
         val articulations: Set<com.lddev.scalefinder.model.Articulation> = emptySet(),
         val bendSemitones: Float = 0f,
         val vibratoRateHz: Float = 0f,
-        val vibratoDepthCents: Float = 0f
+        val vibratoDepthCents: Float = 0f,
     )
 
     data class DetectionResult(
         val notes: List<NoteEvent>,
         val contourFrames: List<FloatArray>,
-        val onsetFrames: List<FloatArray>
+        val onsetFrames: List<FloatArray>,
     )
 
     private var interpreter: Interpreter? = null
 
-    fun isModelAvailable(): Boolean = try {
-        context.assets.openFd(MODEL_FILENAME).close()
-        true
-    } catch (_: IOException) {
-        false
-    }
+    fun isModelAvailable(): Boolean =
+        try {
+            context.assets.openFd(MODEL_FILENAME).close()
+            true
+        } catch (_: IOException) {
+            false
+        }
 
     fun initialize() {
         val model = loadModelFile()
@@ -76,15 +76,19 @@ class BasicPitchDetector(private val context: Context) {
      */
     fun detect(audio: FloatArray): List<NoteEvent> {
         val raw = detectRaw(audio)
-        val articulationInfo = ArticulationDetector.analyse(
-            raw.notes, raw.contourFrames, raw.onsetFrames, FRAMES_PER_SEC
-        )
+        val articulationInfo =
+            ArticulationDetector.analyse(
+                raw.notes,
+                raw.contourFrames,
+                raw.onsetFrames,
+                FRAMES_PER_SEC,
+            )
         return raw.notes.zip(articulationInfo) { note, art ->
             note.copy(
                 articulations = art.articulations,
                 bendSemitones = art.bendSemitones,
                 vibratoRateHz = art.vibratoRateHz,
-                vibratoDepthCents = art.vibratoDepthCents
+                vibratoDepthCents = art.vibratoDepthCents,
             )
         }
     }
@@ -97,8 +101,9 @@ class BasicPitchDetector(private val context: Context) {
     // ── Raw detection (notes + contour + onsets) ────────────────────
 
     private fun detectRaw(audio: FloatArray): DetectionResult {
-        val interp = interpreter
-            ?: throw IllegalStateException("Call initialize() before detect()")
+        val interp =
+            interpreter
+                ?: throw IllegalStateException("Call initialize() before detect()")
 
         val allNoteFrames = mutableListOf<FloatArray>()
         val allOnsetFrames = mutableListOf<FloatArray>()
@@ -127,13 +132,17 @@ class BasicPitchDetector(private val context: Context) {
     private data class WindowResult(
         val noteFrames: List<FloatArray>,
         val onsetFrames: List<FloatArray>,
-        val contourFrames: List<FloatArray>
+        val contourFrames: List<FloatArray>,
     )
 
-    private fun inferWindow(interp: Interpreter, chunk: FloatArray): WindowResult {
-        val inputBuffer = ByteBuffer
-            .allocateDirect(4 * AUDIO_WINDOW)
-            .order(ByteOrder.nativeOrder())
+    private fun inferWindow(
+        interp: Interpreter,
+        chunk: FloatArray,
+    ): WindowResult {
+        val inputBuffer =
+            ByteBuffer
+                .allocateDirect(4 * AUDIO_WINDOW)
+                .order(ByteOrder.nativeOrder())
         for (s in chunk) inputBuffer.putFloat(s)
         inputBuffer.rewind()
 
@@ -141,17 +150,18 @@ class BasicPitchDetector(private val context: Context) {
         val noteOut = Array(1) { Array(FRAMES_PER_WINDOW) { FloatArray(N_PITCHES) } }
         val contourOut = Array(1) { Array(FRAMES_PER_WINDOW) { FloatArray(CONTOUR_BINS) } }
 
-        val outputs = mapOf<Int, Any>(
-            0 to onsetOut,
-            1 to noteOut,
-            2 to contourOut
-        )
+        val outputs =
+            mapOf<Int, Any>(
+                0 to onsetOut,
+                1 to noteOut,
+                2 to contourOut,
+            )
 
         interp.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputs)
         return WindowResult(
             noteOut[0].toList(),
             onsetOut[0].toList(),
-            contourOut[0].toList()
+            contourOut[0].toList(),
         )
     }
 
@@ -159,7 +169,7 @@ class BasicPitchDetector(private val context: Context) {
 
     private fun postProcess(
         noteFrames: List<FloatArray>,
-        onsetFrames: List<FloatArray>
+        onsetFrames: List<FloatArray>,
     ): List<NoteEvent> {
         val events = mutableListOf<NoteEvent>()
         val nFrames = noteFrames.size
@@ -203,7 +213,7 @@ class BasicPitchDetector(private val context: Context) {
         endFrame: Int,
         confidence: Float,
         secPerFrame: Float,
-        out: MutableList<NoteEvent>
+        out: MutableList<NoteEvent>,
     ) {
         val startSec = startFrame * secPerFrame
         val endSec = endFrame * secPerFrame
@@ -218,7 +228,7 @@ class BasicPitchDetector(private val context: Context) {
             return fis.channel.map(
                 FileChannel.MapMode.READ_ONLY,
                 fd.startOffset,
-                fd.declaredLength
+                fd.declaredLength,
             )
         }
     }

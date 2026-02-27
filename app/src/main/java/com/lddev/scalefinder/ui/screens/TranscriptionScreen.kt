@@ -64,30 +64,33 @@ import com.lddev.scalefinder.ui.TranscriptionViewModel
 @Composable
 fun TranscriptionScreen(
     modifier: Modifier = Modifier,
-    vm: TranscriptionViewModel = viewModel()
+    vm: TranscriptionViewModel = viewModel(),
 ) {
-    val fileLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        uri?.let { vm.transcribe(it) }
-    }
+    val fileLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+        ) { uri: Uri? ->
+            uri?.let { vm.transcribe(it) }
+        }
 
-    val midiSaveLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("audio/midi")
-    ) { uri: Uri? ->
-        uri?.let { vm.exportMidi(it) }
-    }
+    val midiSaveLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument("audio/midi"),
+        ) { uri: Uri? ->
+            uri?.let { vm.exportMidi(it) }
+        }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
     ) {
         Text(
             text = stringResource(R.string.transcription_title),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -98,12 +101,13 @@ fun TranscriptionScreen(
                     isModelAvailable = vm.isModelAvailable,
                     selectedTuning = vm.selectedTuning,
                     onTuningChanged = vm::setTuning,
-                    onSelectFile = { fileLauncher.launch(arrayOf("audio/*", "video/*")) }
+                    onSelectFile = { fileLauncher.launch(arrayOf("audio/*", "video/*")) },
                 )
 
             TranscriptionViewModel.State.DECODING,
             TranscriptionViewModel.State.ANALYZING,
-            TranscriptionViewModel.State.MAPPING ->
+            TranscriptionViewModel.State.MAPPING,
+            ->
                 ProcessingContent(state = vm.state, progress = vm.progress)
 
             TranscriptionViewModel.State.DONE ->
@@ -114,7 +118,7 @@ fun TranscriptionScreen(
                     midiExported = vm.midiExported,
                     onTuningChanged = vm::setTuning,
                     onExportMidi = { midiSaveLauncher.launch("transcription.mid") },
-                    onReset = vm::reset
+                    onReset = vm::reset,
                 )
 
             TranscriptionViewModel.State.ERROR ->
@@ -130,7 +134,7 @@ private fun IdleContent(
     isModelAvailable: Boolean,
     selectedTuning: Tuning,
     onTuningChanged: (Tuning) -> Unit,
-    onSelectFile: () -> Unit
+    onSelectFile: () -> Unit,
 ) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -140,7 +144,7 @@ private fun IdleContent(
 
             Text(
                 stringResource(R.string.transcription_description),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
 
             TuningSelector(selectedTuning, onTuningChanged)
@@ -148,7 +152,7 @@ private fun IdleContent(
             Button(
                 onClick = onSelectFile,
                 enabled = isModelAvailable,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.content_select_file))
                 Spacer(Modifier.width(8.dp))
@@ -161,19 +165,19 @@ private fun IdleContent(
 @Composable
 private fun ModelMissingBanner() {
     OutlinedCard(
-        Modifier.fillMaxWidth()
+        Modifier.fillMaxWidth(),
     ) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 Icons.Default.Warning,
                 contentDescription = stringResource(R.string.content_model_missing),
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colorScheme.error,
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 stringResource(R.string.transcription_model_missing),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
         }
     }
@@ -184,30 +188,31 @@ private fun ModelMissingBanner() {
 @Composable
 private fun ProcessingContent(
     state: TranscriptionViewModel.State,
-    progress: Float
+    progress: Float,
 ) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(
             Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             CircularProgressIndicator()
             Text(
-                text = when (state) {
-                    TranscriptionViewModel.State.DECODING ->
-                        stringResource(R.string.transcription_decoding)
-                    TranscriptionViewModel.State.ANALYZING ->
-                        stringResource(R.string.transcription_analyzing)
-                    TranscriptionViewModel.State.MAPPING ->
-                        stringResource(R.string.transcription_mapping)
-                    else -> ""
-                },
-                style = MaterialTheme.typography.titleMedium
+                text =
+                    when (state) {
+                        TranscriptionViewModel.State.DECODING ->
+                            stringResource(R.string.transcription_decoding)
+                        TranscriptionViewModel.State.ANALYZING ->
+                            stringResource(R.string.transcription_analyzing)
+                        TranscriptionViewModel.State.MAPPING ->
+                            stringResource(R.string.transcription_mapping)
+                        else -> ""
+                    },
+                style = MaterialTheme.typography.titleMedium,
             )
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -223,7 +228,7 @@ private fun DoneContent(
     midiExported: Boolean,
     onTuningChanged: (Tuning) -> Unit,
     onExportMidi: () -> Unit,
-    onReset: () -> Unit
+    onReset: () -> Unit,
 ) {
     if (tablature == null || tablature.events.isEmpty()) {
         OutlinedCard(Modifier.fillMaxWidth()) {
@@ -232,12 +237,12 @@ private fun DoneContent(
                     Icons.Default.Close,
                     contentDescription = stringResource(R.string.content_no_notes),
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp),
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(R.string.transcription_no_notes),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedButton(onClick = onReset) {
@@ -255,16 +260,20 @@ private fun DoneContent(
                     Icons.Default.Check,
                     contentDescription = stringResource(R.string.content_transcription_complete),
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     stringResource(R.string.transcription_done_summary, noteCount, tablature.events.size),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
             TextButton(onClick = onReset) {
-                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.content_new_transcription), modifier = Modifier.size(16.dp))
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = stringResource(R.string.content_new_transcription),
+                    modifier = Modifier.size(16.dp),
+                )
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.transcription_new))
             }
@@ -282,7 +291,10 @@ private fun DoneContent(
 }
 
 @Composable
-private fun MidiExportButton(exported: Boolean, onClick: () -> Unit) {
+private fun MidiExportButton(
+    exported: Boolean,
+    onClick: () -> Unit,
+) {
     if (exported) {
         FilledTonalButton(onClick = onClick) {
             Icon(Icons.Default.Check, contentDescription = stringResource(R.string.content_midi_saved), modifier = Modifier.size(18.dp))
@@ -306,7 +318,7 @@ private fun TablatureCard(tablature: Tablature) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 stringResource(R.string.transcription_tab_title),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Spacer(Modifier.height(8.dp))
             TablatureCanvas(tablature)
@@ -338,19 +350,21 @@ private fun TablatureCanvas(tablature: Tablature) {
 
     Box(Modifier.horizontalScroll(scrollState)) {
         Canvas(
-            modifier = Modifier
-                .width(canvasWidth)
-                .height(canvasHeight)
+            modifier =
+                Modifier
+                    .width(canvasWidth)
+                    .height(canvasHeight),
         ) {
             val yBase = lineSpacingPx * 0.5f
 
-            val labelPaint = android.graphics.Paint().apply {
-                color = labelColor.toArgbCompat()
-                textSize = with(density) { 13.sp.toPx() }
-                textAlign = android.graphics.Paint.Align.CENTER
-                isAntiAlias = true
-                typeface = android.graphics.Typeface.MONOSPACE
-            }
+            val labelPaint =
+                android.graphics.Paint().apply {
+                    color = labelColor.toArgbCompat()
+                    textSize = with(density) { 13.sp.toPx() }
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    isAntiAlias = true
+                    typeface = android.graphics.Typeface.MONOSPACE
+                }
 
             for (s in 0 until 6) {
                 val y = yBase + s * lineSpacingPx
@@ -358,32 +372,34 @@ private fun TablatureCanvas(tablature: Tablature) {
                     stringLabels[s],
                     labelWidthPx / 2f,
                     y + labelPaint.textSize / 3f,
-                    labelPaint
+                    labelPaint,
                 )
                 drawLine(
                     color = lineColor,
                     start = Offset(labelWidthPx, y),
                     end = Offset(size.width, y),
-                    strokeWidth = 1.5f
+                    strokeWidth = 1.5f,
                 )
             }
 
-            val fretPaint = android.graphics.Paint().apply {
-                color = noteColor.toArgbCompat()
-                textSize = with(density) { 14.sp.toPx() }
-                textAlign = android.graphics.Paint.Align.CENTER
-                isAntiAlias = true
-                isFakeBoldText = true
-                typeface = android.graphics.Typeface.MONOSPACE
-            }
+            val fretPaint =
+                android.graphics.Paint().apply {
+                    color = noteColor.toArgbCompat()
+                    textSize = with(density) { 14.sp.toPx() }
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    isAntiAlias = true
+                    isFakeBoldText = true
+                    typeface = android.graphics.Typeface.MONOSPACE
+                }
 
-            val artPaint = android.graphics.Paint().apply {
-                color = textColor.toArgbCompat()
-                textSize = with(density) { 10.sp.toPx() }
-                textAlign = android.graphics.Paint.Align.CENTER
-                isAntiAlias = true
-                typeface = android.graphics.Typeface.MONOSPACE
-            }
+            val artPaint =
+                android.graphics.Paint().apply {
+                    color = textColor.toArgbCompat()
+                    textSize = with(density) { 10.sp.toPx() }
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    isAntiAlias = true
+                    typeface = android.graphics.Typeface.MONOSPACE
+                }
 
             tablature.events.forEachIndexed { idx, event ->
                 val x = labelWidthPx + (idx + 0.5f) * noteWidthPx
@@ -397,13 +413,13 @@ private fun TablatureCanvas(tablature: Tablature) {
                     drawCircle(
                         color = noteBgColor,
                         radius = maxOf(textW, fretPaint.textSize) * 0.65f,
-                        center = Offset(x, y)
+                        center = Offset(x, y),
                     )
                     drawContext.canvas.nativeCanvas.drawText(
                         text,
                         x,
                         y + fretPaint.textSize / 3f,
-                        fretPaint
+                        fretPaint,
                     )
 
                     if (note.articulations.isNotEmpty()) {
@@ -412,7 +428,7 @@ private fun TablatureCanvas(tablature: Tablature) {
                             artStr,
                             x + textW * 0.5f + artPaint.measureText(artStr) * 0.5f + 2f,
                             y - fretPaint.textSize * 0.35f,
-                            artPaint
+                            artPaint,
                         )
                     }
                 }
@@ -438,7 +454,7 @@ private fun AsciiTablatureCard(tablature: Tablature) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 stringResource(R.string.transcription_ascii_title),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Spacer(Modifier.height(8.dp))
             Box(Modifier.horizontalScroll(rememberScrollState())) {
@@ -446,7 +462,7 @@ private fun AsciiTablatureCard(tablature: Tablature) {
                     text = ascii,
                     fontFamily = FontFamily.Monospace,
                     fontSize = 13.sp,
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
                 )
             }
         }
@@ -456,29 +472,32 @@ private fun AsciiTablatureCard(tablature: Tablature) {
 // ── Error ────────────────────────────────────────────────────────────
 
 @Composable
-private fun ErrorContent(message: String?, onRetry: () -> Unit) {
+private fun ErrorContent(
+    message: String?,
+    onRetry: () -> Unit,
+) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(
             Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(
                 Icons.Default.Warning,
                 contentDescription = stringResource(R.string.content_error),
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
             Text(
                 stringResource(R.string.transcription_error),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             if (message != null) {
                 Text(
                     message,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
             FilledTonalButton(onClick = onRetry) {
@@ -491,7 +510,10 @@ private fun ErrorContent(message: String?, onRetry: () -> Unit) {
 // ── Shared Components ────────────────────────────────────────────────
 
 @Composable
-private fun TuningSelector(selected: Tuning, onChanged: (Tuning) -> Unit) {
+private fun TuningSelector(
+    selected: Tuning,
+    onChanged: (Tuning) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(onClick = { expanded = true }) {
@@ -504,7 +526,7 @@ private fun TuningSelector(selected: Tuning, onChanged: (Tuning) -> Unit) {
                     onClick = {
                         onChanged(tuning)
                         expanded = false
-                    }
+                    },
                 )
             }
         }

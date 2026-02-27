@@ -12,13 +12,12 @@ import kotlin.math.abs
  * metadata through to [TabNote].
  */
 object TabMapper {
-
     private const val MAX_FRET = 22
     private const val ONSET_TOLERANCE_SEC = 0.035f
 
     fun map(
         noteEvents: List<BasicPitchDetector.NoteEvent>,
-        tuning: Tuning
+        tuning: Tuning,
     ): Tablature {
         if (noteEvents.isEmpty()) return Tablature(tuning, emptyList(), 0L)
 
@@ -32,15 +31,16 @@ object TabMapper {
 
             val sorted = group.sortedBy { it.midiPitch }
             for (note in sorted) {
-                val pos = bestPosition(note.midiPitch, tuning, lastFrets, usedStrings)
-                    ?: continue
+                val pos =
+                    bestPosition(note.midiPitch, tuning, lastFrets, usedStrings)
+                        ?: continue
                 tabNotes.add(
                     TabNote(
                         string = pos.first,
                         fret = pos.second,
                         articulations = note.articulations,
-                        bendSemitones = note.bendSemitones
-                    )
+                        bendSemitones = note.bendSemitones,
+                    ),
                 )
                 usedStrings.add(pos.first)
                 lastFrets[pos.first] = pos.second
@@ -53,8 +53,12 @@ object TabMapper {
             }
         }
 
-        val totalMs = if (noteEvents.isNotEmpty())
-            (noteEvents.maxOf { it.endTimeSec } * 1000).toLong() else 0L
+        val totalMs =
+            if (noteEvents.isNotEmpty()) {
+                (noteEvents.maxOf { it.endTimeSec } * 1000).toLong()
+            } else {
+                0L
+            }
 
         return Tablature(tuning, tabEvents, totalMs)
     }
@@ -65,7 +69,7 @@ object TabMapper {
         midiPitch: Int,
         tuning: Tuning,
         lastFrets: IntArray,
-        usedStrings: Set<Int>
+        usedStrings: Set<Int>,
     ): Pair<Int, Int>? {
         var bestString = -1
         var bestFret = -1
@@ -88,9 +92,7 @@ object TabMapper {
         return if (bestString >= 0) bestString to bestFret else null
     }
 
-    private fun groupSimultaneous(
-        events: List<BasicPitchDetector.NoteEvent>
-    ): List<List<BasicPitchDetector.NoteEvent>> {
+    private fun groupSimultaneous(events: List<BasicPitchDetector.NoteEvent>): List<List<BasicPitchDetector.NoteEvent>> {
         val sorted = events.sortedBy { it.startTimeSec }
         val groups = mutableListOf<MutableList<BasicPitchDetector.NoteEvent>>()
         var current = mutableListOf(sorted.first())

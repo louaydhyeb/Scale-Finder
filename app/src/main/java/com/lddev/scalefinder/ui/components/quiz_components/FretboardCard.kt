@@ -14,7 +14,7 @@ import com.lddev.scalefinder.ui.components.home_components.GuitarFretboard
 @Composable
 fun FretboardCard(
     scale: Scale? = null,
-    highlights: List<FretHighlight> = emptyList()
+    highlights: List<FretHighlight> = emptyList(),
 ) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         GuitarFretboard(
@@ -25,7 +25,7 @@ fun FretboardCard(
             fretCount = 12,
             highlights = highlights,
             invertStrings = true,
-            showNoteNames = false
+            showNoteNames = false,
         )
     }
 }

@@ -55,7 +55,7 @@ fun MetronomeControls(
     isRunning: Boolean,
     onBPMChanged: (Int) -> Unit,
     onTimeSignatureChanged: (Int) -> Unit,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val metronomePauseDesc = stringResource(R.string.metronome_pause)
@@ -83,22 +83,25 @@ fun MetronomeControls(
                 collapseDesc = metronomeCollapseDesc,
                 expandDesc = metronomeExpandDesc,
                 collapseLabel = metronomeCollapseLabel,
-                expandLabel = metronomeExpandLabel
+                expandLabel = metronomeExpandLabel,
             )
 
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = expandVertically(
-                    expandFrom = Alignment.Top,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow
-                    )
-                ) + fadeIn(animationSpec = tween(300)),
-                exit = shrinkVertically(
-                    shrinkTowards = Alignment.Top,
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
+                enter =
+                    expandVertically(
+                        expandFrom = Alignment.Top,
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow,
+                            ),
+                    ) + fadeIn(animationSpec = tween(300)),
+                exit =
+                    shrinkVertically(
+                        shrinkTowards = Alignment.Top,
+                        animationSpec = tween(300),
+                    ) + fadeOut(animationSpec = tween(300)),
             ) {
                 Column {
                     Spacer(Modifier.height(16.dp))
@@ -106,7 +109,7 @@ fun MetronomeControls(
                     BeatIndicators(
                         timeSignature = timeSignature,
                         currentBeat = currentBeat,
-                        isRunning = isRunning
+                        isRunning = isRunning,
                     )
 
                     Spacer(Modifier.height(20.dp))
@@ -114,7 +117,7 @@ fun MetronomeControls(
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.bpm), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium)
@@ -123,7 +126,11 @@ fun MetronomeControls(
                         }
 
                         Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.time_signature), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium)
+                            Text(
+                                stringResource(R.string.time_signature),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Medium,
+                            )
                             Spacer(Modifier.height(4.dp))
                             Stepper(label = "", value = timeSignature, onChange = onTimeSignatureChanged)
                         }
@@ -149,48 +156,48 @@ private fun MetronomeHeader(
     collapseDesc: String,
     expandDesc: String,
     collapseLabel: String,
-    expandLabel: String
+    expandLabel: String,
 ) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
                 onClick = onToggle,
-                modifier = Modifier.semantics { contentDescription = if (isRunning) pauseDesc else startDesc }
+                modifier = Modifier.semantics { contentDescription = if (isRunning) pauseDesc else startDesc },
             ) {
                 Icon(
                     if (isRunning) Icons.Default.Clear else Icons.Default.PlayArrow,
                     contentDescription = if (isRunning) pauseLabel else playLabel,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
             Column {
                 Text(
                     "$bpm BPM",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Text(
                     "$timeSignature/4",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
             }
         }
         IconButton(
             onClick = onExpandToggle,
-            modifier = Modifier.semantics { contentDescription = if (isExpanded) collapseDesc else expandDesc }
+            modifier = Modifier.semantics { contentDescription = if (isExpanded) collapseDesc else expandDesc },
         ) {
             Icon(
                 if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (isExpanded) collapseLabel else expandLabel,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             )
         }
     }
@@ -200,50 +207,54 @@ private fun MetronomeHeader(
 private fun BeatIndicators(
     timeSignature: Int,
     currentBeat: Int,
-    isRunning: Boolean
+    isRunning: Boolean,
 ) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         (1..timeSignature).forEach { beat ->
             val isActive = currentBeat == beat && isRunning
-            val scale = animateFloatAsState(
-                targetValue = if (isActive) 1.3f else 1.0f,
-                animationSpec = tween(durationMillis = 100),
-                label = "beat_scale"
-            )
+            val scale =
+                animateFloatAsState(
+                    targetValue = if (isActive) 1.3f else 1.0f,
+                    animationSpec = tween(durationMillis = 100),
+                    label = "beat_scale",
+                )
 
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .scale(scale.value),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .scale(scale.value),
+                contentAlignment = Alignment.Center,
             ) {
                 val color = if (beat == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                 val backgroundColor = if (isActive) color else color.copy(alpha = 0.2f)
 
                 Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(backgroundColor, CircleShape)
-                        .border(
-                            2.dp,
-                            if (isActive) color else color.copy(alpha = 0.3f),
-                            CircleShape
-                        )
+                    modifier =
+                        Modifier
+                            .size(32.dp)
+                            .background(backgroundColor, CircleShape)
+                            .border(
+                                2.dp,
+                                if (isActive) color else color.copy(alpha = 0.3f),
+                                CircleShape,
+                            ),
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = beat.toString(),
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isActive) MaterialTheme.colorScheme.onPrimary else color
-                            )
+                            style =
+                                MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isActive) MaterialTheme.colorScheme.onPrimary else color,
+                                ),
                         )
                     }
                 }

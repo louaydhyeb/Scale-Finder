@@ -3,7 +3,13 @@ package com.lddev.scalefinder.audio
 import com.lddev.scalefinder.audio.engine.AudioEngine
 import com.lddev.scalefinder.audio.engine.GuitarKarplusStrong
 import com.lddev.scalefinder.audio.engine.ReverbEffect
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class NotePlayer {
     private val engine = AudioEngine.instance
@@ -28,15 +34,16 @@ class NotePlayer {
      */
     fun playGuitarNote(
         frequencyHz: Double,
-        durationMs: Int = 1000
+        durationMs: Int = 1000,
     ) {
         engine.start()
         releaseJob?.cancel()
         guitar.noteOn(frequencyHz)
-        releaseJob = scope.launch {
-            delay(durationMs.toLong().coerceAtLeast(0L))
-            guitar.noteOff()
-        }
+        releaseJob =
+            scope.launch {
+                delay(durationMs.toLong().coerceAtLeast(0L))
+                guitar.noteOff()
+            }
     }
 
     fun dispose() {

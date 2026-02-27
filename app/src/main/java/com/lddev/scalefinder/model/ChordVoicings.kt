@@ -13,7 +13,7 @@ package com.lddev.scalefinder.model
 data class ChordVoicing(
     val name: String,
     val frets: List<Int>,
-    val barreAtFret: Int? = null
+    val barreAtFret: Int? = null,
 ) {
     /** The lowest fret being fingered (excluding open and muted strings) */
     val minFret: Int get() = frets.filter { it > 0 }.minOrNull() ?: 0
@@ -30,11 +30,12 @@ data class ChordVoicing(
      * otherwise starts from the lowest fret.
      */
     val displayBaseFret: Int
-        get() = when {
-            hasOpenStrings -> 1
-            minFret <= 2 -> 1
-            else -> minFret
-        }
+        get() =
+            when {
+                hasOpenStrings -> 1
+                minFret <= 2 -> 1
+                else -> minFret
+            }
 
     /** Whether to show the nut (thick top line) in the diagram */
     val showNut: Boolean get() = displayBaseFret == 1
@@ -45,87 +46,100 @@ data class ChordVoicing(
  * and well-known open voicings. All voicings assume standard tuning.
  */
 object ChordVoicings {
-
     // ── E-form moveable shapes ──────────────────────────────────────────
     // Root on string 6 (low E). Values are offsets from the barre fret.
     // -1 = muted
-    private val E_SHAPES: Map<ChordQuality, List<Int>> = mapOf(
-        ChordQuality.MAJOR          to listOf(0, 2, 2, 1, 0, 0),
-        ChordQuality.MINOR          to listOf(0, 2, 2, 0, 0, 0),
-        ChordQuality.AUGMENTED      to listOf(0, 2, 2, 1, 0, -1),
-        ChordQuality.DOMINANT7      to listOf(0, 2, 0, 1, 0, 0),
-        ChordQuality.MAJOR7         to listOf(0, 2, 1, 1, 0, 0),
-        ChordQuality.MINOR7         to listOf(0, 2, 0, 0, 0, 0),
-        ChordQuality.DIMINISHED     to listOf(-1, -1, 1, 2, 1, -1),
-        ChordQuality.HALF_DIMINISHED to listOf(0, 1, 0, 0, -1, -1)
-    )
+    private val E_SHAPES: Map<ChordQuality, List<Int>> =
+        mapOf(
+            ChordQuality.MAJOR to listOf(0, 2, 2, 1, 0, 0),
+            ChordQuality.MINOR to listOf(0, 2, 2, 0, 0, 0),
+            ChordQuality.AUGMENTED to listOf(0, 2, 2, 1, 0, -1),
+            ChordQuality.DOMINANT7 to listOf(0, 2, 0, 1, 0, 0),
+            ChordQuality.MAJOR7 to listOf(0, 2, 1, 1, 0, 0),
+            ChordQuality.MINOR7 to listOf(0, 2, 0, 0, 0, 0),
+            ChordQuality.DIMINISHED to listOf(-1, -1, 1, 2, 1, -1),
+            ChordQuality.HALF_DIMINISHED to listOf(0, 1, 0, 0, -1, -1),
+        )
 
     // ── A-form moveable shapes ──────────────────────────────────────────
     // Root on string 5 (A). Values are offsets from the barre fret.
-    private val A_SHAPES: Map<ChordQuality, List<Int>> = mapOf(
-        ChordQuality.MAJOR          to listOf(-1, 0, 2, 2, 2, 0),
-        ChordQuality.MINOR          to listOf(-1, 0, 2, 2, 1, 0),
-        ChordQuality.AUGMENTED      to listOf(-1, 0, 2, 1, 1, 0),
-        ChordQuality.DOMINANT7      to listOf(-1, 0, 2, 0, 2, 0),
-        ChordQuality.MAJOR7         to listOf(-1, 0, 2, 1, 2, 0),
-        ChordQuality.MINOR7         to listOf(-1, 0, 2, 0, 1, 0),
-        ChordQuality.DIMINISHED     to listOf(-1, 0, 1, 2, 1, -1),
-        ChordQuality.HALF_DIMINISHED to listOf(-1, 0, 1, 0, 1, -1)
-    )
+    private val A_SHAPES: Map<ChordQuality, List<Int>> =
+        mapOf(
+            ChordQuality.MAJOR to listOf(-1, 0, 2, 2, 2, 0),
+            ChordQuality.MINOR to listOf(-1, 0, 2, 2, 1, 0),
+            ChordQuality.AUGMENTED to listOf(-1, 0, 2, 1, 1, 0),
+            ChordQuality.DOMINANT7 to listOf(-1, 0, 2, 0, 2, 0),
+            ChordQuality.MAJOR7 to listOf(-1, 0, 2, 1, 2, 0),
+            ChordQuality.MINOR7 to listOf(-1, 0, 2, 0, 1, 0),
+            ChordQuality.DIMINISHED to listOf(-1, 0, 1, 2, 1, -1),
+            ChordQuality.HALF_DIMINISHED to listOf(-1, 0, 1, 0, 1, -1),
+        )
 
     // ── Special open voicings ───────────────────────────────────────────
     // Unique fingerings that don't come from E/A moveable shapes.
-    private val SPECIAL_OPEN: Map<Pair<Note, ChordQuality>, List<ChordVoicing>> = mapOf(
-        // C chords
-        Pair(Note.C, ChordQuality.MAJOR) to listOf(
-            ChordVoicing("Open C", listOf(-1, 3, 2, 0, 1, 0))
-        ),
-        Pair(Note.C, ChordQuality.DOMINANT7) to listOf(
-            ChordVoicing("Open C7", listOf(-1, 3, 2, 3, 1, 0))
-        ),
-        Pair(Note.C, ChordQuality.MAJOR7) to listOf(
-            ChordVoicing("Open Cmaj7", listOf(-1, 3, 2, 0, 0, 0))
-        ),
-
-        // D chords
-        Pair(Note.D, ChordQuality.MAJOR) to listOf(
-            ChordVoicing("Open D", listOf(-1, -1, 0, 2, 3, 2))
-        ),
-        Pair(Note.D, ChordQuality.MINOR) to listOf(
-            ChordVoicing("Open Dm", listOf(-1, -1, 0, 2, 3, 1))
-        ),
-        Pair(Note.D, ChordQuality.DOMINANT7) to listOf(
-            ChordVoicing("Open D7", listOf(-1, -1, 0, 2, 1, 2))
-        ),
-        Pair(Note.D, ChordQuality.MAJOR7) to listOf(
-            ChordVoicing("Open Dmaj7", listOf(-1, -1, 0, 2, 2, 2))
-        ),
-        Pair(Note.D, ChordQuality.MINOR7) to listOf(
-            ChordVoicing("Open Dm7", listOf(-1, -1, 0, 2, 1, 1))
-        ),
-        Pair(Note.D, ChordQuality.DIMINISHED) to listOf(
-            ChordVoicing("Open Ddim", listOf(-1, -1, 0, 1, 3, 1))
-        ),
-        Pair(Note.D, ChordQuality.HALF_DIMINISHED) to listOf(
-            ChordVoicing("Open Dm7b5", listOf(-1, -1, 0, 1, 1, 1))
-        ),
-
-        // F chords (partial barre – easier than full E-form)
-        Pair(Note.F, ChordQuality.MAJOR) to listOf(
-            ChordVoicing("F (small)", listOf(-1, -1, 3, 2, 1, 1), barreAtFret = 1)
-        ),
-
-        // G chords
-        Pair(Note.G, ChordQuality.MAJOR) to listOf(
-            ChordVoicing("Open G", listOf(3, 2, 0, 0, 0, 3))
-        ),
-        Pair(Note.G, ChordQuality.DOMINANT7) to listOf(
-            ChordVoicing("Open G7", listOf(3, 2, 0, 0, 0, 1))
-        ),
-        Pair(Note.G, ChordQuality.MAJOR7) to listOf(
-            ChordVoicing("Open Gmaj7", listOf(3, 2, 0, 0, 0, 2))
+    private val SPECIAL_OPEN: Map<Pair<Note, ChordQuality>, List<ChordVoicing>> =
+        mapOf(
+            // C chords
+            Pair(Note.C, ChordQuality.MAJOR) to
+                listOf(
+                    ChordVoicing("Open C", listOf(-1, 3, 2, 0, 1, 0)),
+                ),
+            Pair(Note.C, ChordQuality.DOMINANT7) to
+                listOf(
+                    ChordVoicing("Open C7", listOf(-1, 3, 2, 3, 1, 0)),
+                ),
+            Pair(Note.C, ChordQuality.MAJOR7) to
+                listOf(
+                    ChordVoicing("Open Cmaj7", listOf(-1, 3, 2, 0, 0, 0)),
+                ),
+            // D chords
+            Pair(Note.D, ChordQuality.MAJOR) to
+                listOf(
+                    ChordVoicing("Open D", listOf(-1, -1, 0, 2, 3, 2)),
+                ),
+            Pair(Note.D, ChordQuality.MINOR) to
+                listOf(
+                    ChordVoicing("Open Dm", listOf(-1, -1, 0, 2, 3, 1)),
+                ),
+            Pair(Note.D, ChordQuality.DOMINANT7) to
+                listOf(
+                    ChordVoicing("Open D7", listOf(-1, -1, 0, 2, 1, 2)),
+                ),
+            Pair(Note.D, ChordQuality.MAJOR7) to
+                listOf(
+                    ChordVoicing("Open Dmaj7", listOf(-1, -1, 0, 2, 2, 2)),
+                ),
+            Pair(Note.D, ChordQuality.MINOR7) to
+                listOf(
+                    ChordVoicing("Open Dm7", listOf(-1, -1, 0, 2, 1, 1)),
+                ),
+            Pair(Note.D, ChordQuality.DIMINISHED) to
+                listOf(
+                    ChordVoicing("Open Ddim", listOf(-1, -1, 0, 1, 3, 1)),
+                ),
+            Pair(Note.D, ChordQuality.HALF_DIMINISHED) to
+                listOf(
+                    ChordVoicing("Open Dm7b5", listOf(-1, -1, 0, 1, 1, 1)),
+                ),
+            // F chords (partial barre – easier than full E-form)
+            Pair(Note.F, ChordQuality.MAJOR) to
+                listOf(
+                    ChordVoicing("F (small)", listOf(-1, -1, 3, 2, 1, 1), barreAtFret = 1),
+                ),
+            // G chords
+            Pair(Note.G, ChordQuality.MAJOR) to
+                listOf(
+                    ChordVoicing("Open G", listOf(3, 2, 0, 0, 0, 3)),
+                ),
+            Pair(Note.G, ChordQuality.DOMINANT7) to
+                listOf(
+                    ChordVoicing("Open G7", listOf(3, 2, 0, 0, 0, 1)),
+                ),
+            Pair(Note.G, ChordQuality.MAJOR7) to
+                listOf(
+                    ChordVoicing("Open Gmaj7", listOf(3, 2, 0, 0, 0, 2)),
+                ),
         )
-    )
 
     /**
      * Returns available voicings for the given chord.

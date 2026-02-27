@@ -6,7 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TuningTest {
-
     @Test
     fun standard_getOpenStringMidi_knownValues() {
         // E2=40, A2=45, D3=50, G3=55, B3=59, E4=64

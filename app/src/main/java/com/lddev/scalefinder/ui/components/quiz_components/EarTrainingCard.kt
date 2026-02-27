@@ -28,20 +28,20 @@ fun EarTrainingCard(onPlay: () -> Unit) {
             Modifier
                 .padding(24.dp)
                 .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 Icons.Default.PlayArrow,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
             )
             Spacer(Modifier.height(12.dp))
             Button(onClick = onPlay) {
                 Icon(
                     Icons.Default.PlayArrow,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.quiz_play_sound))

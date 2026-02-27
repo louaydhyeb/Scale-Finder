@@ -25,52 +25,59 @@ fun AnswerOption(
     isSelected: Boolean,
     isCorrect: Boolean,
     showResult: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val borderColor = when {
-        showResult && isCorrect -> CorrectGreen
-        showResult && isSelected -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.outlineVariant
-    }
-    val containerColor = when {
-        showResult && isCorrect -> CorrectGreen.copy(alpha = 0.1f)
-        showResult && isSelected -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
-        else -> MaterialTheme.colorScheme.surface
-    }
+    val borderColor =
+        when {
+            showResult && isCorrect -> CorrectGreen
+            showResult && isSelected -> MaterialTheme.colorScheme.error
+            else -> MaterialTheme.colorScheme.outlineVariant
+        }
+    val containerColor =
+        when {
+            showResult && isCorrect -> CorrectGreen.copy(alpha = 0.1f)
+            showResult && isSelected -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+            else -> MaterialTheme.colorScheme.surface
+        }
 
     OutlinedCard(
         onClick = { if (!showResult) onClick() },
         modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(
-            width = if ((showResult && isCorrect) || isSelected) 2.dp else 1.dp,
-            color = borderColor
-        ),
-        colors = CardDefaults.outlinedCardColors(containerColor = containerColor)
+        border =
+            BorderStroke(
+                width = if ((showResult && isCorrect) || isSelected) 2.dp else 1.dp,
+                color = borderColor,
+            ),
+        colors = CardDefaults.outlinedCardColors(containerColor = containerColor),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (isSelected || (showResult && isCorrect)) FontWeight.SemiBold
-                else FontWeight.Normal,
-                modifier = Modifier.weight(1f)
+                fontWeight =
+                    if (isSelected || (showResult && isCorrect)) {
+                        FontWeight.SemiBold
+                    } else {
+                        FontWeight.Normal
+                    },
+                modifier = Modifier.weight(1f),
             )
             if (showResult && isCorrect) {
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
                     tint = CorrectGreen,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             } else if (showResult && isSelected) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

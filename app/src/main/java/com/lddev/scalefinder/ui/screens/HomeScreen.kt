@@ -59,7 +59,7 @@ import com.lddev.scalefinder.ui.components.home_components.SuggestionsPanel
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    vm: HomeViewModel = viewModel()
+    vm: HomeViewModel = viewModel(),
 ) {
     val haptics = LocalHapticFeedback.current
     val notePlayer = remember { NotePlayer() }
@@ -68,10 +68,11 @@ fun HomeScreen(
     val metronomeCurrentBeat by vm.metronomeCurrentBeat.collectAsState()
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
     ) {
         TitleBar()
 
@@ -88,7 +89,10 @@ fun HomeScreen(
             onRemove = vm::removeChord,
             onMoveLeft = vm::moveLeft,
             onMoveRight = vm::moveRight,
-            onSelect = { idx -> vm.selectChord(idx); haptics.performHapticFeedback(HapticFeedbackType.LongPress) },
+            onSelect = { idx ->
+                vm.selectChord(idx)
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            },
             onPlayArpeggio = { idx ->
                 vm.playChordArpeggio(idx)
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -103,7 +107,7 @@ fun HomeScreen(
             },
             onStop = { vm.stopProgression() },
             onBPMChange = vm::updateProgressionBPM,
-            onToggleLoop = vm::toggleLoopProgression
+            onToggleLoop = vm::toggleLoopProgression,
         )
 
         VoicingPanel(vm = vm, haptics = haptics)
@@ -119,7 +123,7 @@ fun HomeScreen(
             isRunning = vm.isMetronomeRunning,
             onBPMChanged = vm::updateMetronomeBPM,
             onTimeSignatureChanged = vm::updateMetronomeTimeSignature,
-            onToggle = vm::toggleMetronome
+            onToggle = vm::toggleMetronome,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -133,49 +137,57 @@ fun HomeScreen(
 @Composable
 private fun TitleBar() {
     Text(
-        text = buildAnnotatedString {
-            withStyle(
-                style = SpanStyle(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.tertiary
-                        )
-                    ),
-                    fontWeight = FontWeight.Bold
-                )
-            ) { append(stringResource(R.string.app_title_scale)) }
-            append(" ")
-            withStyle(
-                style = SpanStyle(
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Bold
-                )
-            ) { append(stringResource(R.string.app_title_finder)) }
-        },
-        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+        text =
+            buildAnnotatedString {
+                withStyle(
+                    style =
+                        SpanStyle(
+                            brush =
+                                Brush.horizontalGradient(
+                                    colors =
+                                        listOf(
+                                            MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.colorScheme.tertiary,
+                                        ),
+                                ),
+                            fontWeight = FontWeight.Bold,
+                        ),
+                ) { append(stringResource(R.string.app_title_scale)) }
+                append(" ")
+                withStyle(
+                    style =
+                        SpanStyle(
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                ) { append(stringResource(R.string.app_title_finder)) }
+            },
+        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
     )
 }
 
 @Composable
 private fun VoicingPanel(
     vm: HomeViewModel,
-    haptics: androidx.compose.ui.hapticfeedback.HapticFeedback
+    haptics: androidx.compose.ui.hapticfeedback.HapticFeedback,
 ) {
     val selectedChord = vm.selectedIndex?.let { vm.progression.getOrNull(it) }
     AnimatedVisibility(
         visible = selectedChord != null,
-        enter = expandVertically(
-            expandFrom = Alignment.Top,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ) + fadeIn(animationSpec = tween(300)),
-        exit = shrinkVertically(
-            shrinkTowards = Alignment.Top,
-            animationSpec = tween(300)
-        ) + fadeOut(animationSpec = tween(300))
+        enter =
+            expandVertically(
+                expandFrom = Alignment.Top,
+                animationSpec =
+                    spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    ),
+            ) + fadeIn(animationSpec = tween(300)),
+        exit =
+            shrinkVertically(
+                shrinkTowards = Alignment.Top,
+                animationSpec = tween(300),
+            ) + fadeOut(animationSpec = tween(300)),
     ) {
         if (selectedChord != null) {
             Column {
@@ -187,7 +199,7 @@ private fun VoicingPanel(
                     onShowOnNeck = { voicing ->
                         vm.showVoicingOnNeck(voicing)
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
+                    },
                 )
             }
         }
@@ -199,9 +211,10 @@ private fun FretSteppers(vm: HomeViewModel) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
     ) {
         Stepper(label = stringResource(R.string.start_fret), value = vm.fretStart, onChange = vm::updateFretStart)
         Stepper(label = stringResource(R.string.fret_count), value = vm.fretCount, onChange = vm::updateFretCount)
@@ -209,18 +222,29 @@ private fun FretSteppers(vm: HomeViewModel) {
 }
 
 @Composable
-private fun FretboardCard(vm: HomeViewModel, notePlayer: NotePlayer) {
+private fun FretboardCard(
+    vm: HomeViewModel,
+    notePlayer: NotePlayer,
+) {
     val fretboardCardDesc = stringResource(R.string.content_fretboard_card)
     val voicingHighlightColor = MaterialTheme.colorScheme.tertiary
-    val voicingHighlights = vm.selectedVoicing?.frets?.mapIndexedNotNull { stringIdx, fret ->
-        if (fret >= 0) FretHighlight(stringIdx, fret, voicingHighlightColor)
-        else null
-    } ?: emptyList()
+    val voicingHighlights =
+        vm.selectedVoicing?.frets?.mapIndexedNotNull { stringIdx, fret ->
+            if (fret >= 0) {
+                FretHighlight(stringIdx, fret, voicingHighlightColor)
+            } else {
+                null
+            }
+        } ?: emptyList()
 
     OutlinedCard(Modifier.fillMaxWidth().semantics { contentDescription = fretboardCardDesc }) {
         Column(Modifier.padding(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.content_fretboard_icon), tint = MaterialTheme.colorScheme.primary)
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.content_fretboard_icon),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
                 Text(stringResource(R.string.fretboard), style = MaterialTheme.typography.titleMedium)
             }
             GuitarFretboard(
@@ -237,7 +261,7 @@ private fun FretboardCard(vm: HomeViewModel, notePlayer: NotePlayer) {
                 onNoteTapped = { stringIdx, fret, _ ->
                     val freq = vm.selectedTuning.getFrequency(stringIdx, fret)
                     notePlayer.playGuitarNote(freq, durationMs = 1000)
-                }
+                },
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.tuning_label, vm.selectedTuning.name))

@@ -30,27 +30,35 @@ import com.lddev.scalefinder.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun Stepper(label: String, value: Int, onChange: (Int) -> Unit) {
+fun Stepper(
+    label: String,
+    value: Int,
+    onChange: (Int) -> Unit,
+) {
     var decrementPressed by remember { mutableStateOf(false) }
     var incrementPressed by remember { mutableStateOf(false) }
 
-    val decrementScale = animateFloatAsState(
-        targetValue = if (decrementPressed) 0.8f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "decrement_scale"
-    )
+    val decrementScale =
+        animateFloatAsState(
+            targetValue = if (decrementPressed) 0.8f else 1f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "decrement_scale",
+        )
 
-    val incrementScale = animateFloatAsState(
-        targetValue = if (incrementPressed) 0.8f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "increment_scale"
-    )
+    val incrementScale =
+        animateFloatAsState(
+            targetValue = if (incrementPressed) 0.8f else 1f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "increment_scale",
+        )
 
     LaunchedEffect(decrementPressed) {
         if (decrementPressed) {
@@ -73,9 +81,10 @@ fun Stepper(label: String, value: Int, onChange: (Int) -> Unit) {
                 decrementPressed = true
                 onChange(value - 1)
             },
-            modifier = Modifier
-                .scale(decrementScale.value)
-                .semantics { contentDescription = "$label decrement" }
+            modifier =
+                Modifier
+                    .scale(decrementScale.value)
+                    .semantics { contentDescription = "$label decrement" },
         ) {
             Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.decrease))
         }
@@ -85,9 +94,10 @@ fun Stepper(label: String, value: Int, onChange: (Int) -> Unit) {
                 incrementPressed = true
                 onChange(value + 1)
             },
-            modifier = Modifier
-                .scale(incrementScale.value)
-                .semantics { contentDescription = "$label increment" }
+            modifier =
+                Modifier
+                    .scale(incrementScale.value)
+                    .semantics { contentDescription = "$label increment" },
         ) {
             Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.increase))
         }

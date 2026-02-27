@@ -69,30 +69,35 @@ import com.lddev.scalefinder.ui.components.home_components.Stepper
 @Composable
 fun ScaleExplorerScreen(
     modifier: Modifier = Modifier,
-    vm: ScaleExplorerViewModel = viewModel()
+    vm: ScaleExplorerViewModel = viewModel(),
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
     ) {
         // Title
         Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                ) { append(stringResource(R.string.scale_explorer_title)) }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            text =
+                buildAnnotatedString {
+                    withStyle(
+                        style =
+                            SpanStyle(
+                                brush =
+                                    Brush.horizontalGradient(
+                                        colors =
+                                            listOf(
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.tertiary,
+                                            ),
+                                    ),
+                                fontWeight = FontWeight.Bold,
+                            ),
+                    ) { append(stringResource(R.string.scale_explorer_title)) }
+                },
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         )
 
         Spacer(Modifier.height(12.dp))
@@ -116,9 +121,10 @@ fun ScaleExplorerScreen(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
         ) {
             Stepper(label = stringResource(R.string.start_fret), value = vm.fretStart, onChange = vm::updateFretStart)
             Stepper(label = stringResource(R.string.fret_count), value = vm.fretCount, onChange = vm::updateFretCount)
@@ -130,7 +136,11 @@ fun ScaleExplorerScreen(
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.content_fretboard_options), tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.content_fretboard_options),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
                     Text(stringResource(R.string.scale_explorer_fretboard), style = MaterialTheme.typography.titleMedium)
                 }
                 GuitarFretboard(
@@ -144,7 +154,7 @@ fun ScaleExplorerScreen(
                     onNoteTapped = { stringIdx, fret, _ ->
                         val freq = vm.selectedTuning.getFrequency(stringIdx, fret)
                         vm.playFrequency(freq)
-                    }
+                    },
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(R.string.tuning_label, vm.selectedTuning.name))
@@ -163,7 +173,7 @@ private fun ScalePickerRow(vm: ScaleExplorerViewModel) {
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Root picker
         var rootExpanded by remember { mutableStateOf(false) }
@@ -174,15 +184,19 @@ private fun ScalePickerRow(vm: ScaleExplorerViewModel) {
                 readOnly = true,
                 label = { Text(stringResource(R.string.select_root)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(rootExpanded) },
-                modifier = Modifier
-                    .width(120.dp)
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                modifier =
+                    Modifier
+                        .width(120.dp)
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
             )
             DropdownMenu(expanded = rootExpanded, onDismissRequest = { rootExpanded = false }) {
                 Note.entries.forEach { note ->
                     DropdownMenuItem(
                         text = { Text(note.toString(), fontWeight = if (note == vm.selectedRoot) FontWeight.Bold else FontWeight.Normal) },
-                        onClick = { vm.setRoot(note); rootExpanded = false }
+                        onClick = {
+                            vm.setRoot(note)
+                            rootExpanded = false
+                        },
                     )
                 }
             }
@@ -197,15 +211,24 @@ private fun ScalePickerRow(vm: ScaleExplorerViewModel) {
                 readOnly = true,
                 label = { Text(stringResource(R.string.select_scale_type)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
-                modifier = Modifier
-                    .width(240.dp)
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                modifier =
+                    Modifier
+                        .width(240.dp)
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
             )
             DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
                 ScaleType.entries.forEach { type ->
                     DropdownMenuItem(
-                        text = { Text(type.display, fontWeight = if (type == vm.selectedScaleType) FontWeight.Bold else FontWeight.Normal) },
-                        onClick = { vm.setScaleType(type); typeExpanded = false }
+                        text = {
+                            Text(
+                                type.display,
+                                fontWeight = if (type == vm.selectedScaleType) FontWeight.Bold else FontWeight.Normal,
+                            )
+                        },
+                        onClick = {
+                            vm.setScaleType(type)
+                            typeExpanded = false
+                        },
                     )
                 }
             }
@@ -219,12 +242,20 @@ private fun ScalePickerRow(vm: ScaleExplorerViewModel) {
             }
         } else {
             OutlinedButton(onClick = { vm.playScaleAscending() }) {
-                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.content_play_ascending), modifier = Modifier.size(18.dp))
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = stringResource(R.string.content_play_ascending),
+                    modifier = Modifier.size(18.dp),
+                )
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.play_scale_ascending))
             }
             OutlinedButton(onClick = { vm.playScaleDescending() }) {
-                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.content_play_descending), modifier = Modifier.size(18.dp))
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = stringResource(R.string.content_play_descending),
+                    modifier = Modifier.size(18.dp),
+                )
                 Spacer(Modifier.width(4.dp))
                 Text(stringResource(R.string.play_scale_descending))
             }
@@ -237,9 +268,10 @@ private fun ScalePickerRow(vm: ScaleExplorerViewModel) {
 private fun ScaleInfoCard(vm: ScaleExplorerViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            ),
     ) {
         Column(Modifier.padding(16.dp)) {
             // Scale notes
@@ -247,18 +279,17 @@ private fun ScaleInfoCard(vm: ScaleExplorerViewModel) {
             Spacer(Modifier.height(8.dp))
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 vm.scaleNotes.forEachIndexed { index, note ->
                     NoteChip(
                         note = note.toString(),
                         isRoot = index == 0,
                         isPlaying = vm.currentPlayingNoteIndex == index,
-                        onClick = { vm.playNoteAtIndex(index) }
+                        onClick = { vm.playNoteAtIndex(index) },
                     )
                 }
             }
-
         }
     }
 }
@@ -268,45 +299,47 @@ private fun NoteChip(
     note: String,
     isRoot: Boolean,
     isPlaying: Boolean = false,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
-    val bgColor = when {
-        isPlaying -> MaterialTheme.colorScheme.tertiary
-        isRoot -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.secondaryContainer
-    }
-    val textColor = when {
-        isPlaying -> MaterialTheme.colorScheme.onTertiary
-        isRoot -> MaterialTheme.colorScheme.onPrimary
-        else -> MaterialTheme.colorScheme.onSecondaryContainer
-    }
-    val animatedScale = animateFloatAsState(
-        targetValue = if (isPlaying) 1.2f else 1f,
-        animationSpec = tween(150),
-        label = "note_chip_scale"
-    )
+    val bgColor =
+        when {
+            isPlaying -> MaterialTheme.colorScheme.tertiary
+            isRoot -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.secondaryContainer
+        }
+    val textColor =
+        when {
+            isPlaying -> MaterialTheme.colorScheme.onTertiary
+            isRoot -> MaterialTheme.colorScheme.onPrimary
+            else -> MaterialTheme.colorScheme.onSecondaryContainer
+        }
+    val animatedScale =
+        animateFloatAsState(
+            targetValue = if (isPlaying) 1.2f else 1f,
+            animationSpec = tween(150),
+            label = "note_chip_scale",
+        )
 
     Box(
-        modifier = Modifier
-            .scale(animatedScale.value)
-            .clickable { onClick() }
-            .background(color = bgColor, shape = RoundedCornerShape(8.dp))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .scale(animatedScale.value)
+                .clickable { onClick() }
+                .background(color = bgColor, shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = note,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = if (isRoot || isPlaying) FontWeight.Bold else FontWeight.Medium,
-            color = textColor
+            color = textColor,
         )
     }
 }
 
 @Composable
-private fun DiatonicChordsSection(
-    vm: ScaleExplorerViewModel
-) {
+private fun DiatonicChordsSection(vm: ScaleExplorerViewModel) {
     val chords = vm.diatonicChords
 
     Column(Modifier.fillMaxWidth()) {
@@ -317,14 +350,14 @@ private fun DiatonicChordsSection(
             Text(
                 stringResource(R.string.no_diatonic_chords),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
         } else {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 itemsIndexed(chords) { _, dc ->
                     DiatonicChordCard(
                         degree = dc.degree,
-                        chordName = dc.chord.toString()
+                        chordName = dc.chord.toString(),
                     )
                 }
             }
@@ -333,23 +366,26 @@ private fun DiatonicChordsSection(
 }
 
 @Composable
-private fun DiatonicChordCard(degree: String, chordName: String) {
+private fun DiatonicChordCard(
+    degree: String,
+    chordName: String,
+) {
     OutlinedCard {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = degree,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = chordName,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

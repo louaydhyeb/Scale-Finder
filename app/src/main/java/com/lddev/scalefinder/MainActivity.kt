@@ -33,12 +33,12 @@ class MainActivity : ComponentActivity() {
                 if (showSplash) {
                     SplashScreen(
                         darkTheme = isDark,
-                        onSplashComplete = { showSplash = false }
+                        onSplashComplete = { showSplash = false },
                     )
                 } else {
                     AppNavigation(
                         onToggleTheme = { isDark = !isDark },
-                        isDark = isDark
+                        isDark = isDark,
                     )
                 }
             }

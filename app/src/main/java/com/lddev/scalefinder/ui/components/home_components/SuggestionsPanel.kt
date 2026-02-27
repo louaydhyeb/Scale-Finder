@@ -44,7 +44,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun SuggestionsPanel(
     progression: List<Chord>,
-    onChooseScale: (Scale) -> Unit
+    onChooseScale: (Scale) -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
         SectionHeader(icon = Icons.Default.Search, title = stringResource(R.string.scale_suggestions))
@@ -59,7 +59,7 @@ fun SuggestionsPanel(
                         index = index,
                         scaleName = s.scale.toString(),
                         rationale = s.rationale,
-                        onChoose = { onChooseScale(s.scale) }
+                        onChoose = { onChooseScale(s.scale) },
                     )
                 }
             }
@@ -72,19 +72,21 @@ private fun ScaleSuggestionCard(
     index: Int,
     scaleName: String,
     rationale: String,
-    onChoose: () -> Unit
+    onChoose: () -> Unit,
 ) {
     val isTop = index == 0
     var pulseScale by remember { mutableFloatStateOf(1f) }
-    val pulseAnimation = animateFloatAsState(
-        targetValue = pulseScale,
-        animationSpec = if (isTop) {
-            tween(durationMillis = 1000, delayMillis = index * 100)
-        } else {
-            tween(durationMillis = 300, delayMillis = index * 50)
-        },
-        label = "pulse_scale"
-    )
+    val pulseAnimation =
+        animateFloatAsState(
+            targetValue = pulseScale,
+            animationSpec =
+                if (isTop) {
+                    tween(durationMillis = 1000, delayMillis = index * 100)
+                } else {
+                    tween(durationMillis = 300, delayMillis = index * 50)
+                },
+            label = "pulse_scale",
+        )
 
     LaunchedEffect(isTop) {
         if (isTop) {
@@ -97,20 +99,24 @@ private fun ScaleSuggestionCard(
 
     AnimatedVisibility(
         visible = true,
-        enter = slideInHorizontally(
-            initialOffsetX = { it },
-            animationSpec = tween(
-                durationMillis = 400,
-                delayMillis = index * 80,
-                easing = FastOutSlowInEasing
-            )
-        ) + fadeIn(
-            animationSpec = tween(
-                durationMillis = 400,
-                delayMillis = index * 80
-            )
-        ),
-        modifier = Modifier.scale(if (isTop) pulseAnimation.value else 1f)
+        enter =
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec =
+                    tween(
+                        durationMillis = 400,
+                        delayMillis = index * 80,
+                        easing = FastOutSlowInEasing,
+                    ),
+            ) +
+                fadeIn(
+                    animationSpec =
+                        tween(
+                            durationMillis = 400,
+                            delayMillis = index * 80,
+                        ),
+                ),
+        modifier = Modifier.scale(if (isTop) pulseAnimation.value else 1f),
     ) {
         Card {
             Column(Modifier.padding(8.dp)) {
@@ -120,7 +126,7 @@ private fun ScaleSuggestionCard(
                 val showScaleDesc = stringResource(R.string.content_show_scale_on_neck)
                 OutlinedButton(
                     onClick = onChoose,
-                    modifier = Modifier.height(48.dp).semantics { contentDescription = showScaleDesc }
+                    modifier = Modifier.height(48.dp).semantics { contentDescription = showScaleDesc },
                 ) {
                     Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(8.dp))
