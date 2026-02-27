@@ -75,16 +75,17 @@ fun TunerScreen(vm: TunerViewModel = viewModel()) {
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED
+                PackageManager.PERMISSION_GRANTED,
         )
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-        if (granted) vm.startListening()
-    }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            hasPermission = granted
+            if (granted) vm.startListening()
+        }
 
     DisposableEffect(hasPermission) {
         if (hasPermission) vm.startListening()
@@ -93,7 +94,7 @@ fun TunerScreen(vm: TunerViewModel = viewModel()) {
 
     if (!hasPermission) {
         PermissionRequest(
-            onRequest = { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }
+            onRequest = { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
         )
     } else {
         TunerContent(vm)
@@ -104,29 +105,29 @@ fun TunerScreen(vm: TunerViewModel = viewModel()) {
 private fun PermissionRequest(onRequest: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Card(
             modifier = Modifier.padding(32.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         ) {
             Column(
                 modifier = Modifier.padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
                     text = stringResource(R.string.tuner_permission_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = stringResource(R.string.tuner_permission_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 Button(onClick = onRequest) {
                     Text(stringResource(R.string.tuner_grant_permission))
@@ -141,34 +142,37 @@ private fun TunerContent(vm: TunerViewModel) {
     val pitch = vm.currentPitch
     val centsFromTarget = vm.centsFromTarget()
 
-    val displayCents = when {
-        pitch == null -> 0f
-        centsFromTarget != null -> centsFromTarget.coerceIn(-50f, 50f)
-        else -> pitch.cents.coerceIn(-50f, 50f)
-    }
+    val displayCents =
+        when {
+            pitch == null -> 0f
+            centsFromTarget != null -> centsFromTarget.coerceIn(-50f, 50f)
+            else -> pitch.cents.coerceIn(-50f, 50f)
+        }
 
     val animatedCents by animateFloatAsState(
         targetValue = displayCents,
         animationSpec = tween(durationMillis = 150),
-        label = "cents"
+        label = "cents",
     )
 
-    val accuracy = when {
-        pitch == null -> TunerAccuracy.NO_SIGNAL
-        abs(displayCents) <= 3f -> TunerAccuracy.IN_TUNE
-        abs(displayCents) <= 15f -> TunerAccuracy.CLOSE
-        else -> TunerAccuracy.OFF
-    }
+    val accuracy =
+        when {
+            pitch == null -> TunerAccuracy.NO_SIGNAL
+            abs(displayCents) <= 3f -> TunerAccuracy.IN_TUNE
+            abs(displayCents) <= 15f -> TunerAccuracy.CLOSE
+            else -> TunerAccuracy.OFF
+        }
 
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 12.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(start = 12.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         StringSelectorPanel(
             vm = vm,
-            modifier = Modifier.fillMaxHeight()
+            modifier = Modifier.fillMaxHeight(),
         )
 
         GaugePanel(
@@ -177,36 +181,41 @@ private fun TunerContent(vm: TunerViewModel) {
             animatedCents = animatedCents,
             accuracy = accuracy,
             displayCents = displayCents,
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
     }
 }
 
 @Composable
-private fun StringSelectorPanel(vm: TunerViewModel, modifier: Modifier = Modifier) {
+private fun StringSelectorPanel(
+    vm: TunerViewModel,
+    modifier: Modifier = Modifier,
+) {
     var showTuningMenu by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box {
             OutlinedButton(
                 onClick = { showTuningMenu = true },
                 shape = RoundedCornerShape(8.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    horizontal = 10.dp, vertical = 4.dp
-                )
+                contentPadding =
+                    androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = 10.dp,
+                        vertical = 4.dp,
+                    ),
             ) {
                 Text(
                     text = vm.selectedTuning.name,
                     style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1
+                    maxLines = 1,
                 )
             }
             DropdownMenu(
                 expanded = showTuningMenu,
-                onDismissRequest = { showTuningMenu = false }
+                onDismissRequest = { showTuningMenu = false },
             ) {
                 Tuning.all().forEach { tuning ->
                     DropdownMenuItem(
@@ -214,7 +223,7 @@ private fun StringSelectorPanel(vm: TunerViewModel, modifier: Modifier = Modifie
                         onClick = {
                             vm.selectTuning(tuning)
                             showTuningMenu = false
-                        }
+                        },
                     )
                 }
             }
@@ -223,41 +232,49 @@ private fun StringSelectorPanel(vm: TunerViewModel, modifier: Modifier = Modifie
         Spacer(Modifier.height(4.dp))
 
         Box(
-            modifier = Modifier
-                .background(
-                    color = if (vm.targetStringIndex < 0)
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(6.dp)
-                )
-                .clickable { vm.selectTargetString(-1) }
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .background(
+                        color =
+                            if (vm.targetStringIndex < 0) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            },
+                        shape = RoundedCornerShape(6.dp),
+                    )
+                    .clickable { vm.selectTargetString(-1) }
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = stringResource(R.string.tuner_auto),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (vm.targetStringIndex < 0) FontWeight.Bold else FontWeight.Normal,
-                color = if (vm.targetStringIndex < 0)
-                    MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant
+                color =
+                    if (vm.targetStringIndex < 0) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
             )
         }
 
         val stringCount = vm.selectedTuning.openNotes.size
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(vertical = 4.dp),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(vertical = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             for (i in (stringCount - 1) downTo 0) {
                 val isSelected = vm.targetStringIndex == i
                 StringButton(
                     label = vm.getStringLabel(i),
                     isSelected = isSelected,
-                    onClick = { vm.selectTargetString(i) }
+                    onClick = { vm.selectTargetString(i) },
                 )
             }
         }
@@ -268,36 +285,45 @@ private fun StringSelectorPanel(vm: TunerViewModel, modifier: Modifier = Modifie
 private fun StringButton(
     label: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val bgColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.surfaceVariant,
-        label = "stringBg"
+        targetValue =
+            if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+        label = "stringBg",
     )
     val textColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary
-        else MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "stringText"
+        targetValue =
+            if (isSelected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        label = "stringText",
     )
 
     Box(
-        modifier = Modifier
-            .size(36.dp)
-            .background(bgColor, CircleShape)
-            .border(
-                width = if (isSelected) 0.dp else 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = CircleShape
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .size(36.dp)
+                .background(bgColor, CircleShape)
+                .border(
+                    width = if (isSelected) 0.dp else 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    shape = CircleShape,
+                )
+                .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = textColor
+            color = textColor,
         )
     }
 }
@@ -309,24 +335,26 @@ private fun GaugePanel(
     animatedCents: Float,
     accuracy: TunerAccuracy,
     displayCents: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val accentColor by animateColorAsState(
-        targetValue = when (accuracy) {
-            TunerAccuracy.IN_TUNE -> TunerGreen
-            TunerAccuracy.CLOSE -> TunerYellow
-            TunerAccuracy.OFF -> TunerRed
-            TunerAccuracy.NO_SIGNAL -> MaterialTheme.colorScheme.outline
-        },
+        targetValue =
+            when (accuracy) {
+                TunerAccuracy.IN_TUNE -> TunerGreen
+                TunerAccuracy.CLOSE -> TunerYellow
+                TunerAccuracy.OFF -> TunerRed
+                TunerAccuracy.NO_SIGNAL -> MaterialTheme.colorScheme.outline
+            },
         animationSpec = tween(300),
-        label = "accent"
+        label = "accent",
     )
 
-    val noteDisplay = when {
-        pitch == null -> "–"
-        vm.targetStringIndex >= 0 -> vm.getStringLabel(vm.targetStringIndex)
-        else -> "${pitch.noteName}${pitch.octave}"
-    }
+    val noteDisplay =
+        when {
+            pitch == null -> "–"
+            vm.targetStringIndex >= 0 -> vm.getStringLabel(vm.targetStringIndex)
+            else -> "${pitch.noteName}${pitch.octave}"
+        }
 
     val textMeasurer = rememberTextMeasurer()
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -336,13 +364,14 @@ private fun GaugePanel(
 
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Canvas(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
         ) {
             drawTunerGauge(
                 cents = animatedCents,
@@ -352,32 +381,32 @@ private fun GaugePanel(
                 onSurfaceVariant = onSurfaceVariant,
                 outline = outline,
                 surfaceVariant = surfaceVariant,
-                textMeasurer = textMeasurer
+                textMeasurer = textMeasurer,
             )
         }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
         ) {
             if (pitch != null) {
                 Text(
                     text = "%.1f Hz".format(pitch.frequency),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = "%+.0f cents".format(displayCents),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = accentColor
+                    color = accentColor,
                 )
             } else {
                 Text(
                     text = stringResource(R.string.tuner_no_signal),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -388,7 +417,7 @@ private fun GaugePanel(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = TunerGreen,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
         }
     }
@@ -402,7 +431,7 @@ private fun DrawScope.drawTunerGauge(
     onSurfaceVariant: Color,
     outline: Color,
     surfaceVariant: Color,
-    textMeasurer: androidx.compose.ui.text.TextMeasurer
+    textMeasurer: androidx.compose.ui.text.TextMeasurer,
 ) {
     val w = size.width
     val h = size.height
@@ -422,21 +451,22 @@ private fun DrawScope.drawTunerGauge(
         useCenter = false,
         topLeft = Offset(cx - gaugeRadius, cy - gaugeRadius),
         size = androidx.compose.ui.geometry.Size(gaugeRadius * 2, gaugeRadius * 2),
-        style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
+        style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round),
     )
 
     // Colored center segment (shows "in tune" zone, ±5 cents)
     val zoneSweep = arcSweepDeg * (10f / 100f)
     drawArc(
-        brush = Brush.sweepGradient(
-            colors = listOf(TunerYellow, TunerGreen, TunerGreen, TunerYellow),
-        ),
+        brush =
+            Brush.sweepGradient(
+                colors = listOf(TunerYellow, TunerGreen, TunerGreen, TunerYellow),
+            ),
         startAngle = arcCenterDeg - zoneSweep / 2f,
         sweepAngle = zoneSweep,
         useCenter = false,
         topLeft = Offset(cx - gaugeRadius, cy - gaugeRadius),
         size = androidx.compose.ui.geometry.Size(gaugeRadius * 2, gaugeRadius * 2),
-        style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
+        style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round),
     )
 
     // Tick marks
@@ -452,16 +482,18 @@ private fun DrawScope.drawTunerGauge(
 
         drawLine(
             color = if (isMajor) onSurfaceVariant else outline,
-            start = Offset(
-                cx + outerR * cos(rad).toFloat(),
-                cy + outerR * sin(rad).toFloat()
-            ),
-            end = Offset(
-                cx + innerR * cos(rad).toFloat(),
-                cy + innerR * sin(rad).toFloat()
-            ),
+            start =
+                Offset(
+                    cx + outerR * cos(rad).toFloat(),
+                    cy + outerR * sin(rad).toFloat(),
+                ),
+            end =
+                Offset(
+                    cx + innerR * cos(rad).toFloat(),
+                    cy + innerR * sin(rad).toFloat(),
+                ),
             strokeWidth = if (isMajor) 2.5.dp.toPx() else 1.5.dp.toPx(),
-            cap = StrokeCap.Round
+            cap = StrokeCap.Round,
         )
     }
 
@@ -470,27 +502,31 @@ private fun DrawScope.drawTunerGauge(
     val flatAngle = Math.toRadians(arcStartDeg.toDouble())
     val sharpAngle = Math.toRadians((arcStartDeg + arcSweepDeg).toDouble())
 
-    val flatLayout = textMeasurer.measure(
-        "♭",
-        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onSurfaceVariant)
-    )
+    val flatLayout =
+        textMeasurer.measure(
+            "♭",
+            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onSurfaceVariant),
+        )
     drawText(
         flatLayout,
-        topLeft = Offset(
-            cx + labelRadius * cos(flatAngle).toFloat() - flatLayout.size.width / 2f,
-            cy + labelRadius * sin(flatAngle).toFloat() - flatLayout.size.height / 2f
+        topLeft =
+            Offset(
+                cx + labelRadius * cos(flatAngle).toFloat() - flatLayout.size.width / 2f,
+                cy + labelRadius * sin(flatAngle).toFloat() - flatLayout.size.height / 2f,
+            ),
+    )
+    val sharpLayout =
+        textMeasurer.measure(
+            "♯",
+            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onSurfaceVariant),
         )
-    )
-    val sharpLayout = textMeasurer.measure(
-        "♯",
-        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = onSurfaceVariant)
-    )
     drawText(
         sharpLayout,
-        topLeft = Offset(
-            cx + labelRadius * cos(sharpAngle).toFloat() - sharpLayout.size.width / 2f,
-            cy + labelRadius * sin(sharpAngle).toFloat() - sharpLayout.size.height / 2f
-        )
+        topLeft =
+            Offset(
+                cx + labelRadius * cos(sharpAngle).toFloat() - sharpLayout.size.width / 2f,
+                cy + labelRadius * sin(sharpAngle).toFloat() - sharpLayout.size.height / 2f,
+            ),
     )
 
     // Needle
@@ -501,44 +537,51 @@ private fun DrawScope.drawTunerGauge(
     drawLine(
         color = accentColor,
         start = Offset(cx, cy),
-        end = Offset(
-            cx + needleLen * cos(needleRad).toFloat(),
-            cy + needleLen * sin(needleRad).toFloat()
-        ),
+        end =
+            Offset(
+                cx + needleLen * cos(needleRad).toFloat(),
+                cy + needleLen * sin(needleRad).toFloat(),
+            ),
         strokeWidth = 3.dp.toPx(),
-        cap = StrokeCap.Round
+        cap = StrokeCap.Round,
     )
 
     // Pivot circle
     drawCircle(
         color = accentColor,
         radius = 8.dp.toPx(),
-        center = Offset(cx, cy)
+        center = Offset(cx, cy),
     )
     drawCircle(
         color = onSurface,
         radius = 4.dp.toPx(),
-        center = Offset(cx, cy)
+        center = Offset(cx, cy),
     )
 
     // Note text centered below the gauge pivot
-    val noteLayout = textMeasurer.measure(
-        noteDisplay,
-        style = TextStyle(
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Bold,
-            color = onSurface
+    val noteLayout =
+        textMeasurer.measure(
+            noteDisplay,
+            style =
+                TextStyle(
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = onSurface,
+                ),
         )
-    )
     drawText(
         noteLayout,
-        topLeft = Offset(
-            cx - noteLayout.size.width / 2f,
-            cy + 16.dp.toPx()
-        )
+        topLeft =
+            Offset(
+                cx - noteLayout.size.width / 2f,
+                cy + 16.dp.toPx(),
+            ),
     )
 }
 
 private enum class TunerAccuracy {
-    NO_SIGNAL, OFF, CLOSE, IN_TUNE
+    NO_SIGNAL,
+    OFF,
+    CLOSE,
+    IN_TUNE,
 }

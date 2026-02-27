@@ -47,10 +47,21 @@ class ScaleExplorerViewModel : ViewModel() {
     val scaleNotes: List<Note> get() = ScaleFormulas.scaleNotes(scale)
     val diatonicChords: List<DiatonicChord> get() = ScaleFormulas.diatonicChords(scale)
 
-    fun setRoot(note: Note) { selectedRoot = note }
-    fun setScaleType(type: ScaleType) { selectedScaleType = type }
-    fun updateFretStart(value: Int) { fretStart = value.coerceIn(0, 18) }
-    fun updateFretCount(value: Int) { fretCount = value.coerceIn(5, 18) }
+    fun setRoot(note: Note) {
+        selectedRoot = note
+    }
+
+    fun setScaleType(type: ScaleType) {
+        selectedScaleType = type
+    }
+
+    fun updateFretStart(value: Int) {
+        fretStart = value.coerceIn(0, 18)
+    }
+
+    fun updateFretCount(value: Int) {
+        fretCount = value.coerceIn(5, 18)
+    }
 
     private fun midiToFreq(midi: Int): Double = 440.0 * 2.0.pow((midi - 69) / 12.0)
 
@@ -66,7 +77,10 @@ class ScaleExplorerViewModel : ViewModel() {
         notePlayer.playGuitarNote(midiToFreq(midi), durationMs = 800)
     }
 
-    private fun noteToMidi(note: Note, octaveBase: Int): Int {
+    private fun noteToMidi(
+        note: Note,
+        octaveBase: Int,
+    ): Int {
         val offset = Note.positiveMod(note.semitone - selectedRoot.semitone, 12)
         return octaveBase + offset
     }
@@ -74,46 +88,48 @@ class ScaleExplorerViewModel : ViewModel() {
     fun playScaleAscending() {
         playJob?.cancel()
         isPlayingScale = true
-        playJob = viewModelScope.launch {
-            val notes = scaleNotes
-            val rootMidi = selectedTuning.getOpenStringMidi(0) + 12
-            for ((idx, note) in notes.withIndex()) {
-                currentPlayingNoteIndex = idx
-                val midi = noteToMidi(note, rootMidi)
-                notePlayer.playGuitarNote(midiToFreq(midi), durationMs = 500)
-                delay(420)
+        playJob =
+            viewModelScope.launch {
+                val notes = scaleNotes
+                val rootMidi = selectedTuning.getOpenStringMidi(0) + 12
+                for ((idx, note) in notes.withIndex()) {
+                    currentPlayingNoteIndex = idx
+                    val midi = noteToMidi(note, rootMidi)
+                    notePlayer.playGuitarNote(midiToFreq(midi), durationMs = 500)
+                    delay(420)
+                }
+                currentPlayingNoteIndex = notes.size
+                val octaveMidi = rootMidi + 12
+                notePlayer.playGuitarNote(midiToFreq(octaveMidi), durationMs = 800)
+                delay(700)
+                isPlayingScale = false
+                currentPlayingNoteIndex = -1
             }
-            currentPlayingNoteIndex = notes.size
-            val octaveMidi = rootMidi + 12
-            notePlayer.playGuitarNote(midiToFreq(octaveMidi), durationMs = 800)
-            delay(700)
-            isPlayingScale = false
-            currentPlayingNoteIndex = -1
-        }
     }
 
     fun playScaleDescending() {
         playJob?.cancel()
         isPlayingScale = true
-        playJob = viewModelScope.launch {
-            val notes = scaleNotes
-            val rootMidi = selectedTuning.getOpenStringMidi(0) + 12
+        playJob =
+            viewModelScope.launch {
+                val notes = scaleNotes
+                val rootMidi = selectedTuning.getOpenStringMidi(0) + 12
 
-            currentPlayingNoteIndex = notes.size
-            val octaveMidi = rootMidi + 12
-            notePlayer.playGuitarNote(midiToFreq(octaveMidi), durationMs = 500)
-            delay(420)
-
-            for (idx in notes.indices.reversed()) {
-                currentPlayingNoteIndex = idx
-                val midi = noteToMidi(notes[idx], rootMidi)
-                notePlayer.playGuitarNote(midiToFreq(midi), durationMs = 500)
+                currentPlayingNoteIndex = notes.size
+                val octaveMidi = rootMidi + 12
+                notePlayer.playGuitarNote(midiToFreq(octaveMidi), durationMs = 500)
                 delay(420)
+
+                for (idx in notes.indices.reversed()) {
+                    currentPlayingNoteIndex = idx
+                    val midi = noteToMidi(notes[idx], rootMidi)
+                    notePlayer.playGuitarNote(midiToFreq(midi), durationMs = 500)
+                    delay(420)
+                }
+                delay(300)
+                isPlayingScale = false
+                currentPlayingNoteIndex = -1
             }
-            delay(300)
-            isPlayingScale = false
-            currentPlayingNoteIndex = -1
-        }
     }
 
     fun stopScale() {

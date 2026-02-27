@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class TranscriptionViewModel(application: Application) : AndroidViewModel(application) {
-
     enum class State { IDLE, DECODING, ANALYZING, MAPPING, DONE, ERROR }
 
     var state by mutableStateOf(State.IDLE)
@@ -52,36 +51,39 @@ class TranscriptionViewModel(application: Application) : AndroidViewModel(applic
 
     fun transcribe(uri: Uri) {
         transcribeJob?.cancel()
-        transcribeJob = viewModelScope.launch {
-            try {
-                state = State.DECODING
-                progress = 0.1f
+        transcribeJob =
+            viewModelScope.launch {
+                try {
+                    state = State.DECODING
+                    progress = 0.1f
 
-                val audio = decoder.decode(uri)
+                    val audio = decoder.decode(uri)
 
-                state = State.ANALYZING
-                progress = 0.4f
+                    state = State.ANALYZING
+                    progress = 0.4f
 
-                val notes = withContext(Dispatchers.Default) {
-                    detector.detect(audio.samples)
+                    val notes =
+                        withContext(Dispatchers.Default) {
+                            detector.detect(audio.samples)
+                        }
+                    detectedNotes = notes
+
+                    state = State.MAPPING
+                    progress = 0.8f
+
+                    val tab =
+                        withContext(Dispatchers.Default) {
+                            TabMapper.map(notes, selectedTuning)
+                        }
+
+                    tablature = tab
+                    progress = 1f
+                    state = State.DONE
+                } catch (e: Exception) {
+                    errorMessage = e.message ?: "Unknown error"
+                    state = State.ERROR
                 }
-                detectedNotes = notes
-
-                state = State.MAPPING
-                progress = 0.8f
-
-                val tab = withContext(Dispatchers.Default) {
-                    TabMapper.map(notes, selectedTuning)
-                }
-
-                tablature = tab
-                progress = 1f
-                state = State.DONE
-            } catch (e: Exception) {
-                errorMessage = e.message ?: "Unknown error"
-                state = State.ERROR
             }
-        }
     }
 
     fun setTuning(tuning: Tuning) {
@@ -89,11 +91,13 @@ class TranscriptionViewModel(application: Application) : AndroidViewModel(applic
         val notes = detectedNotes
         if (notes.isNotEmpty()) {
             remapJob?.cancel()
-            remapJob = viewModelScope.launch {
-                tablature = withContext(Dispatchers.Default) {
-                    TabMapper.map(notes, tuning)
+            remapJob =
+                viewModelScope.launch {
+                    tablature =
+                        withContext(Dispatchers.Default) {
+                            TabMapper.map(notes, tuning)
+                        }
                 }
-            }
         }
     }
 

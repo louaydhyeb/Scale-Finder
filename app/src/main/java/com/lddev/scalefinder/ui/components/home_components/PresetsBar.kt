@@ -47,44 +47,67 @@ fun PresetsBar(vm: HomeViewModel) {
         SectionHeader(
             icon = Icons.Default.Star,
             title = stringResource(R.string.quick_presets),
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 12.dp),
         )
 
-        val presets = listOf(
-            Triple(stringResource(R.string.preset_pop_progression), stringResource(R.string.preset_pop_description)) { vm.applyProgressionPreset(ProgressionPreset.POP) },
-            Triple(stringResource(R.string.preset_jazz_progression), stringResource(R.string.preset_jazz_description)) { vm.applyProgressionPreset(ProgressionPreset.JAZZ) },
-            Triple(stringResource(R.string.preset_blues), stringResource(R.string.preset_blues_description)) { vm.applyProgressionPreset(ProgressionPreset.BLUES) },
-            Triple(stringResource(R.string.preset_standard), stringResource(R.string.preset_standard_description)) { vm.setTuning(Tuning.STANDARD) },
-            Triple(stringResource(R.string.preset_drop_d), stringResource(R.string.preset_drop_d_description)) { vm.setTuning(Tuning.DROP_D) },
-            Triple(stringResource(R.string.preset_frets_0_12), stringResource(R.string.preset_frets_0_12_description)) { vm.applyFretPreset(0, 12) },
-            Triple(stringResource(R.string.preset_box_5), stringResource(R.string.preset_box_5_description)) { vm.applyFretPreset(5, 7) }
-        )
+        val presets =
+            listOf(
+                Triple(stringResource(R.string.preset_pop_progression), stringResource(R.string.preset_pop_description)) {
+                    vm.applyProgressionPreset(ProgressionPreset.POP)
+                },
+                Triple(stringResource(R.string.preset_jazz_progression), stringResource(R.string.preset_jazz_description)) {
+                    vm.applyProgressionPreset(ProgressionPreset.JAZZ)
+                },
+                Triple(stringResource(R.string.preset_blues), stringResource(R.string.preset_blues_description)) {
+                    vm.applyProgressionPreset(ProgressionPreset.BLUES)
+                },
+                Triple(
+                    stringResource(R.string.preset_standard),
+                    stringResource(R.string.preset_standard_description),
+                ) { vm.setTuning(Tuning.STANDARD) },
+                Triple(
+                    stringResource(R.string.preset_drop_d),
+                    stringResource(R.string.preset_drop_d_description),
+                ) { vm.setTuning(Tuning.DROP_D) },
+                Triple(
+                    stringResource(R.string.preset_frets_0_12),
+                    stringResource(R.string.preset_frets_0_12_description),
+                ) { vm.applyFretPreset(0, 12) },
+                Triple(
+                    stringResource(R.string.preset_box_5),
+                    stringResource(R.string.preset_box_5_description),
+                ) { vm.applyFretPreset(5, 7) },
+            )
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             itemsIndexed(presets) { index, preset ->
                 AnimatedVisibility(
                     visible = true,
-                    enter = slideInHorizontally(
-                        initialOffsetX = { it },
-                        animationSpec = tween(
-                            durationMillis = 300,
-                            delayMillis = index * 50,
-                            easing = FastOutSlowInEasing
-                        )
-                    ) + fadeIn(
-                        animationSpec = tween(
-                            durationMillis = 300,
-                            delayMillis = index * 50
-                        )
-                    )
+                    enter =
+                        slideInHorizontally(
+                            initialOffsetX = { it },
+                            animationSpec =
+                                tween(
+                                    durationMillis = 300,
+                                    delayMillis = index * 50,
+                                    easing = FastOutSlowInEasing,
+                                ),
+                        ) +
+                            fadeIn(
+                                animationSpec =
+                                    tween(
+                                        durationMillis = 300,
+                                        delayMillis = index * 50,
+                                    ),
+                            ),
                 ) {
                     PresetChip(
                         label = preset.first,
                         description = preset.second,
-                        onClick = preset.third
+                        onClick = preset.third,
                     )
                 }
             }
@@ -96,17 +119,19 @@ fun PresetsBar(vm: HomeViewModel) {
 private fun PresetChip(
     label: String,
     description: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     var pressed by remember { mutableStateOf(false) }
-    val scale = animateFloatAsState(
-        targetValue = if (pressed) 0.95f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "preset_scale"
-    )
+    val scale =
+        animateFloatAsState(
+            targetValue = if (pressed) 0.95f else 1f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "preset_scale",
+        )
 
     LaunchedEffect(pressed) {
         if (pressed) {
@@ -120,31 +145,34 @@ private fun PresetChip(
             pressed = true
             onClick()
         },
-        modifier = Modifier
-            .height(70.dp)
-            .width(110.dp)
-            .scale(scale.value),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        )
+        modifier =
+            Modifier
+                .height(70.dp)
+                .width(110.dp)
+                .scale(scale.value),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+            ),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.Center
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             )
         }
     }

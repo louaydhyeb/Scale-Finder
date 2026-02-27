@@ -54,68 +54,75 @@ private data class CircleOfFifthsState(
     val major: String,
     val relativeMinor: String,
     val accidentals: String,
-    val commonProgression: String
+    val commonProgression: String,
 )
 
 @Composable
-fun CircleOfFifthsScreen(
-    modifier: Modifier = Modifier
-) {
+fun CircleOfFifthsScreen(modifier: Modifier = Modifier) {
     val outerNotes = listOf("C", "G", "D", "A", "E", "B", "F#/Gb", "Db", "Ab", "Eb", "Bb", "F")
     val innerNotes = listOf("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm", "Bbm", "Fm", "Cm", "Gm", "Dm")
 
-    val keyDetails = listOf(
-        CircleOfFifthsState("C", "Am", "0 # / 0 b", "I - V - vi - IV"),
-        CircleOfFifthsState("G", "Em", "1 #", "I - V - vi - IV"),
-        CircleOfFifthsState("D", "Bm", "2 #", "I - V - vi - IV"),
-        CircleOfFifthsState("A", "F#m", "3 #", "I - V - vi - IV"),
-        CircleOfFifthsState("E", "C#m", "4 #", "I - V - vi - IV"),
-        CircleOfFifthsState("B", "G#m", "5 #", "I - V - vi - IV"),
-        CircleOfFifthsState("F#/Gb", "Ebm", "6 # / 6 b", "i - VI - III - VII"),
-        CircleOfFifthsState("Db", "Bbm", "5 b", "ii - V - I"),
-        CircleOfFifthsState("Ab", "Fm", "4 b", "ii - V - I"),
-        CircleOfFifthsState("Eb", "Cm", "3 b", "ii - V - I"),
-        CircleOfFifthsState("Bb", "Gm", "2 b", "I - V - vi - IV"),
-        CircleOfFifthsState("F", "Dm", "1 b", "I - V - vi - IV")
-    )
+    val keyDetails =
+        listOf(
+            CircleOfFifthsState("C", "Am", "0 # / 0 b", "I - V - vi - IV"),
+            CircleOfFifthsState("G", "Em", "1 #", "I - V - vi - IV"),
+            CircleOfFifthsState("D", "Bm", "2 #", "I - V - vi - IV"),
+            CircleOfFifthsState("A", "F#m", "3 #", "I - V - vi - IV"),
+            CircleOfFifthsState("E", "C#m", "4 #", "I - V - vi - IV"),
+            CircleOfFifthsState("B", "G#m", "5 #", "I - V - vi - IV"),
+            CircleOfFifthsState("F#/Gb", "Ebm", "6 # / 6 b", "i - VI - III - VII"),
+            CircleOfFifthsState("Db", "Bbm", "5 b", "ii - V - I"),
+            CircleOfFifthsState("Ab", "Fm", "4 b", "ii - V - I"),
+            CircleOfFifthsState("Eb", "Cm", "3 b", "ii - V - I"),
+            CircleOfFifthsState("Bb", "Gm", "2 b", "I - V - vi - IV"),
+            CircleOfFifthsState("F", "Dm", "1 b", "I - V - vi - IV"),
+        )
 
     var selectedIndex by remember { mutableIntStateOf(0) }
     var selectedInner by remember { mutableStateOf(false) }
 
     val selected = keyDetails[selectedIndex]
-    val majorRoots = listOf(
-        Note.C, Note.G, Note.D, Note.A, Note.E, Note.B,
-        Note.F_SHARP, Note.C_SHARP, Note.G_SHARP, Note.D_SHARP, Note.A_SHARP, Note.F
-    )
-    val selectedScale = if (selectedInner) {
-        Scale(Note.fromSemitone(majorRoots[selectedIndex].semitone + 9), ScaleType.AEOLIAN)
-    } else {
-        Scale(majorRoots[selectedIndex], ScaleType.MAJOR)
-    }
-    val degreesText = ScaleFormulas.diatonicChords(selectedScale)
-        .joinToString("   ") { "${it.degree}:${formatChordShort(it.chord)}" }
+    val majorRoots =
+        listOf(
+            Note.C, Note.G, Note.D, Note.A, Note.E, Note.B,
+            Note.F_SHARP, Note.C_SHARP, Note.G_SHARP, Note.D_SHARP, Note.A_SHARP, Note.F,
+        )
+    val selectedScale =
+        if (selectedInner) {
+            Scale(Note.fromSemitone(majorRoots[selectedIndex].semitone + 9), ScaleType.AEOLIAN)
+        } else {
+            Scale(majorRoots[selectedIndex], ScaleType.MAJOR)
+        }
+    val degreesText =
+        ScaleFormulas.diatonicChords(selectedScale)
+            .joinToString("   ") { "${it.degree}:${formatChordShort(it.chord)}" }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
     ) {
         Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                ) { append(stringResource(R.string.circle_of_fifths_title)) }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            text =
+                buildAnnotatedString {
+                    withStyle(
+                        style =
+                            SpanStyle(
+                                brush =
+                                    Brush.horizontalGradient(
+                                        colors =
+                                            listOf(
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.tertiary,
+                                            ),
+                                    ),
+                                fontWeight = FontWeight.Bold,
+                            ),
+                    ) { append(stringResource(R.string.circle_of_fifths_title)) }
+                },
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         )
 
         Spacer(Modifier.height(8.dp))
@@ -123,7 +130,7 @@ fun CircleOfFifthsScreen(
         Text(
             text = stringResource(R.string.circle_of_fifths_subtitle),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -140,42 +147,44 @@ fun CircleOfFifthsScreen(
             onSelectInner = { index ->
                 selectedIndex = index
                 selectedInner = true
-            }
+            },
         )
 
         Spacer(Modifier.height(16.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-            )
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                ),
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
-                    text = if (selectedInner) {
-                        stringResource(R.string.circle_selected_minor, selected.relativeMinor, selected.major)
-                    } else {
-                        stringResource(R.string.circle_selected_major, selected.major, selected.relativeMinor)
-                    },
+                    text =
+                        if (selectedInner) {
+                            stringResource(R.string.circle_selected_minor, selected.relativeMinor, selected.major)
+                        } else {
+                            stringResource(R.string.circle_selected_major, selected.major, selected.relativeMinor)
+                        },
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = stringResource(R.string.circle_accidentals, selected.accidentals),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
                     text = stringResource(R.string.circle_progression, selected.commonProgression),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
                     text = "Degrees: $degreesText",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -183,16 +192,17 @@ fun CircleOfFifthsScreen(
 }
 
 private fun formatChordShort(chord: Chord): String {
-    val suffix = when (chord.quality) {
-        ChordQuality.MAJOR -> ""
-        ChordQuality.MINOR -> "m"
-        ChordQuality.DIMINISHED -> "dim"
-        ChordQuality.AUGMENTED -> "+"
-        ChordQuality.DOMINANT7 -> "7"
-        ChordQuality.MAJOR7 -> "Maj7"
-        ChordQuality.MINOR7 -> "m7"
-        ChordQuality.HALF_DIMINISHED -> "m7b5"
-    }
+    val suffix =
+        when (chord.quality) {
+            ChordQuality.MAJOR -> ""
+            ChordQuality.MINOR -> "m"
+            ChordQuality.DIMINISHED -> "dim"
+            ChordQuality.AUGMENTED -> "+"
+            ChordQuality.DOMINANT7 -> "7"
+            ChordQuality.MAJOR7 -> "Maj7"
+            ChordQuality.MINOR7 -> "m7"
+            ChordQuality.HALF_DIMINISHED -> "m7b5"
+        }
     return "${chord.root}$suffix"
 }
 
@@ -203,7 +213,7 @@ private fun CircleOfFifthsChart(
     selectedIndex: Int,
     selectedInner: Boolean,
     onSelectOuter: (Int) -> Unit,
-    onSelectInner: (Int) -> Unit
+    onSelectInner: (Int) -> Unit,
 ) {
     val chartSize = 420.dp
     val outerRadius = 165.dp
@@ -213,13 +223,14 @@ private fun CircleOfFifthsChart(
     val dividerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(chartSize),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(chartSize),
+        contentAlignment = Alignment.Center,
     ) {
         Canvas(
-            modifier = Modifier.size(chartSize)
+            modifier = Modifier.size(chartSize),
         ) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val outerRadiusPx = size.minDimension * 0.4f
@@ -229,30 +240,32 @@ private fun CircleOfFifthsChart(
                 color = outerRingColor,
                 radius = outerRadiusPx,
                 center = center,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 6f, cap = StrokeCap.Round)
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 6f, cap = StrokeCap.Round),
             )
             drawCircle(
                 color = innerRingColor,
                 radius = innerRadiusPx,
                 center = center,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 5f, cap = StrokeCap.Round)
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 5f, cap = StrokeCap.Round),
             )
 
             repeat(12) { index ->
                 val radians = Math.toRadians((index * 30.0) - 90.0)
-                val start = Offset(
-                    x = center.x + cos(radians).toFloat() * (innerRadiusPx + 16f),
-                    y = center.y + sin(radians).toFloat() * (innerRadiusPx + 16f)
-                )
-                val end = Offset(
-                    x = center.x + cos(radians).toFloat() * (outerRadiusPx - 16f),
-                    y = center.y + sin(radians).toFloat() * (outerRadiusPx - 16f)
-                )
+                val start =
+                    Offset(
+                        x = center.x + cos(radians).toFloat() * (innerRadiusPx + 16f),
+                        y = center.y + sin(radians).toFloat() * (innerRadiusPx + 16f),
+                    )
+                val end =
+                    Offset(
+                        x = center.x + cos(radians).toFloat() * (outerRadiusPx - 16f),
+                        y = center.y + sin(radians).toFloat() * (outerRadiusPx - 16f),
+                    )
                 drawLine(
                     color = dividerColor,
                     start = start,
                     end = end,
-                    strokeWidth = 2f
+                    strokeWidth = 2f,
                 )
             }
         }
@@ -263,7 +276,7 @@ private fun CircleOfFifthsChart(
                 radius = outerRadius,
                 index = index,
                 selected = index == selectedIndex && !selectedInner,
-                onClick = { onSelectOuter(index) }
+                onClick = { onSelectOuter(index) },
             )
         }
 
@@ -273,7 +286,7 @@ private fun CircleOfFifthsChart(
                 radius = innerRadius,
                 index = index,
                 selected = index == selectedIndex && selectedInner,
-                onClick = { onSelectInner(index) }
+                onClick = { onSelectInner(index) },
             )
         }
     }
@@ -285,35 +298,37 @@ private fun CircularKeyChip(
     radius: Dp,
     index: Int,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val angle = Math.toRadians((index * 30.0) - 90.0)
     val offsetX = (radius.value * cos(angle).toFloat()).dp
     val offsetY = (radius.value * sin(angle).toFloat()).dp
 
     Box(
-        modifier = Modifier
-            .offset(x = offsetX, y = offsetY)
-            .size(52.dp)
-            .padding(2.dp)
-            .background(
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                shape = CircleShape
-            )
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .offset(x = offsetX, y = offsetY)
+                .size(52.dp)
+                .padding(2.dp)
+                .background(
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = CircleShape,
+                )
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
-            color = if (selected) {
-                MaterialTheme.colorScheme.onPrimary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
+            color =
+                if (selected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             style = MaterialTheme.typography.labelMedium,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }

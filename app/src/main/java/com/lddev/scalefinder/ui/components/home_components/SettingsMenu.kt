@@ -46,16 +46,17 @@ fun SettingsMenu(
     invert: Boolean,
     onToggleInvert: () -> Unit,
     showNoteNames: Boolean,
-    onToggleShowNoteNames: () -> Unit
+    onToggleShowNoteNames: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var tuningMenuExpanded by remember { mutableStateOf(false) }
     var themeRotation by remember { mutableFloatStateOf(0f) }
-    val rotation = animateFloatAsState(
-        targetValue = themeRotation,
-        animationSpec = tween(durationMillis = 300),
-        label = "theme_rotation"
-    )
+    val rotation =
+        animateFloatAsState(
+            targetValue = themeRotation,
+            animationSpec = tween(durationMillis = 300),
+            label = "theme_rotation",
+        )
 
     val settingsMenuDesc = stringResource(R.string.content_settings_menu)
     val settingsDesc = stringResource(R.string.settings)
@@ -63,18 +64,18 @@ fun SettingsMenu(
     Box {
         IconButton(
             onClick = { expanded = true },
-            modifier = Modifier.semantics { contentDescription = settingsMenuDesc }
+            modifier = Modifier.semantics { contentDescription = settingsMenuDesc },
         ) {
             Icon(
                 Icons.Default.MoreVert,
                 contentDescription = settingsDesc,
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
         ) {
             SettingsMenuItem(
                 icon = Icons.Default.Settings,
@@ -83,7 +84,7 @@ fun SettingsMenu(
                 onClick = {
                     themeRotation = if (themeRotation == 0f) 180f else 0f
                     onToggleTheme()
-                }
+                },
             )
 
             DropdownMenuItem(
@@ -91,31 +92,31 @@ fun SettingsMenu(
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
                                 Icons.Default.Settings,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                             Text(
                                 stringResource(R.string.tuning),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                         }
                         Text(
                             selectedTuning.name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         )
                     }
                 },
-                onClick = { tuningMenuExpanded = true }
+                onClick = { tuningMenuExpanded = true },
             )
 
             SettingsToggleItem(
@@ -123,7 +124,7 @@ fun SettingsMenu(
                 isActive = highContrast,
                 activeLabel = stringResource(R.string.contrast_high),
                 inactiveLabel = stringResource(R.string.contrast_normal),
-                onClick = onToggleHighContrast
+                onClick = onToggleHighContrast,
             )
 
             SettingsToggleItem(
@@ -131,7 +132,7 @@ fun SettingsMenu(
                 isActive = invert,
                 activeLabel = stringResource(R.string.fretboard_inverted),
                 inactiveLabel = stringResource(R.string.fretboard_normal),
-                onClick = onToggleInvert
+                onClick = onToggleInvert,
             )
 
             SettingsToggleItem(
@@ -139,26 +140,26 @@ fun SettingsMenu(
                 isActive = showNoteNames,
                 activeLabel = stringResource(R.string.note_names_hide),
                 inactiveLabel = stringResource(R.string.note_names_show),
-                onClick = onToggleShowNoteNames
+                onClick = onToggleShowNoteNames,
             )
         }
 
         DropdownMenu(
             expanded = tuningMenuExpanded,
-            onDismissRequest = { tuningMenuExpanded = false }
+            onDismissRequest = { tuningMenuExpanded = false },
         ) {
             Tuning.all().forEach { tuning ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             tuning.name,
-                            fontWeight = if (tuning == selectedTuning) FontWeight.SemiBold else FontWeight.Normal
+                            fontWeight = if (tuning == selectedTuning) FontWeight.SemiBold else FontWeight.Normal,
                         )
                     },
                     onClick = {
                         onTuningChanged(tuning)
                         tuningMenuExpanded = false
-                    }
+                    },
                 )
             }
         }
@@ -170,26 +171,27 @@ private fun SettingsMenuItem(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
-    iconRotation: Float = 0f
+    iconRotation: Float = 0f,
 ) {
     DropdownMenuItem(
         text = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .rotate(iconRotation),
-                    tint = MaterialTheme.colorScheme.primary
+                    modifier =
+                        Modifier
+                            .size(20.dp)
+                            .rotate(iconRotation),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(label, style = MaterialTheme.typography.bodyMedium)
             }
         },
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -199,28 +201,32 @@ private fun SettingsToggleItem(
     isActive: Boolean,
     activeLabel: String,
     inactiveLabel: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     DropdownMenuItem(
         text = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = if (isActive) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    tint =
+                        if (isActive) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        },
                 )
                 Text(
                     if (isActive) activeLabel else inactiveLabel,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
+                    fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
                 )
             }
         },
-        onClick = onClick
+        onClick = onClick,
     )
 }

@@ -18,7 +18,6 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class Metronome {
-
     companion object {
         private const val TAG = "Metronome"
         const val SAMPLE_RATE = 44100
@@ -50,18 +49,22 @@ class Metronome {
     private val normalTrack: AudioTrack? = buildClickTrack(normalClickBuffer)
     private val accentTrack: AudioTrack? = buildClickTrack(accentClickBuffer)
 
-    private fun generateClick(frequency: Double, volume: Float): ShortArray {
+    private fun generateClick(
+        frequency: Double,
+        volume: Float,
+    ): ShortArray {
         val samples = (SAMPLE_RATE * (CLICK_DURATION_MS / 1000.0)).toInt()
         val buffer = ShortArray(samples)
         val phaseIncrement = 2.0 * PI * frequency / SAMPLE_RATE
         var phase = 0.0
 
         for (i in buffer.indices) {
-            val envelope = when {
-                i < samples / 8 -> i.toFloat() / (samples / 8f)
-                i > samples * 0.7 -> 1.0f - ((i - samples * 0.7).toFloat() / (samples * 0.3f))
-                else -> 1.0f
-            }
+            val envelope =
+                when {
+                    i < samples / 8 -> i.toFloat() / (samples / 8f)
+                    i > samples * 0.7 -> 1.0f - ((i - samples * 0.7).toFloat() / (samples * 0.3f))
+                    else -> 1.0f
+                }
 
             val sample = sin(phase).toFloat() * envelope
             buffer[i] = (sample * Short.MAX_VALUE * volume).toInt().toShort()
@@ -73,22 +76,23 @@ class Metronome {
 
     private fun buildClickTrack(buffer: ShortArray): AudioTrack? {
         return try {
-            val builder = AudioTrack.Builder()
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_GAME)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setSampleRate(SAMPLE_RATE)
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .build()
-                )
-                .setBufferSizeInBytes(buffer.size * 2)
-                .setTransferMode(AudioTrack.MODE_STATIC)
+            val builder =
+                AudioTrack.Builder()
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_GAME)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build(),
+                    )
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setSampleRate(SAMPLE_RATE)
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .build(),
+                    )
+                    .setBufferSizeInBytes(buffer.size * 2)
+                    .setTransferMode(AudioTrack.MODE_STATIC)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
@@ -109,7 +113,8 @@ class Metronome {
             track.stop()
             track.setPlaybackHeadPosition(0)
             track.play()
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
     }
 
     fun start(initialBeat: Int = 1) {
@@ -152,7 +157,13 @@ class Metronome {
         stop()
         disposed = true
         scope.cancel()
-        try { normalTrack?.release() } catch (_: Throwable) { }
-        try { accentTrack?.release() } catch (_: Throwable) { }
+        try {
+            normalTrack?.release()
+        } catch (_: Throwable) {
+        }
+        try {
+            accentTrack?.release()
+        } catch (_: Throwable) {
+        }
     }
 }

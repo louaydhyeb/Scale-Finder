@@ -12,7 +12,6 @@ import kotlin.math.sin
  * vibrato and bends.
  */
 object MidiExporter {
-
     private const val TICKS_PER_BEAT = 480
     private const val DEFAULT_BPM = 120
     private const val MICROSEC_PER_BEAT = 60_000_000 / DEFAULT_BPM
@@ -37,7 +36,10 @@ object MidiExporter {
         return out.toByteArray()
     }
 
-    fun exportTo(notes: List<BasicPitchDetector.NoteEvent>, outputStream: OutputStream) {
+    fun exportTo(
+        notes: List<BasicPitchDetector.NoteEvent>,
+        outputStream: OutputStream,
+    ) {
         outputStream.write(export(notes))
         outputStream.flush()
     }
@@ -46,7 +48,9 @@ object MidiExporter {
 
     private sealed class MidiEv(val tick: Int) {
         class NoteOn(tick: Int, val pitch: Int, val vel: Int) : MidiEv(tick)
+
         class NoteOff(tick: Int, val pitch: Int) : MidiEv(tick)
+
         class PitchBend(tick: Int, val value: Int) : MidiEv(tick)
     }
 
@@ -63,8 +67,14 @@ object MidiExporter {
             events.add(MidiEv.NoteOff(endTick, n.midiPitch))
 
             if (Articulation.VIBRATO in n.articulations && n.vibratoRateHz > 0f) {
-                addVibratoBend(events, startTick, endTick, n.vibratoRateHz,
-                    n.vibratoDepthCents, ticksPerSec)
+                addVibratoBend(
+                    events,
+                    startTick,
+                    endTick,
+                    n.vibratoRateHz,
+                    n.vibratoDepthCents,
+                    ticksPerSec,
+                )
             } else if (Articulation.BEND_UP in n.articulations && n.bendSemitones > 0f) {
                 addBendUp(events, startTick, endTick, n.bendSemitones)
             } else if (Articulation.BEND_RELEASE in n.articulations && n.bendSemitones > 0f) {
@@ -72,13 +82,15 @@ object MidiExporter {
             }
         }
 
-        events.sortWith(compareBy({ it.tick }, {
-            when (it) {
-                is MidiEv.PitchBend -> 0
-                is MidiEv.NoteOff -> 1
-                is MidiEv.NoteOn -> 2
-            }
-        }))
+        events.sortWith(
+            compareBy({ it.tick }, {
+                when (it) {
+                    is MidiEv.PitchBend -> 0
+                    is MidiEv.NoteOff -> 1
+                    is MidiEv.NoteOn -> 2
+                }
+            }),
+        )
 
         val buf = ByteArrayOutputStream()
 
@@ -90,11 +102,17 @@ object MidiExporter {
 
         // Pitch bend range RPN (set to ±2 semitones)
         buf.writeVarLen(0)
-        buf.write(0xB0); buf.write(0x65); buf.write(0x00) // RPN MSB = 0
+        buf.write(0xB0)
+        buf.write(0x65)
+        buf.write(0x00) // RPN MSB = 0
         buf.writeVarLen(0)
-        buf.write(0xB0); buf.write(0x64); buf.write(0x00) // RPN LSB = 0
+        buf.write(0xB0)
+        buf.write(0x64)
+        buf.write(0x00) // RPN LSB = 0
         buf.writeVarLen(0)
-        buf.write(0xB0); buf.write(0x06); buf.write(PITCH_BEND_RANGE_SEMI) // Data MSB
+        buf.write(0xB0)
+        buf.write(0x06)
+        buf.write(PITCH_BEND_RANGE_SEMI) // Data MSB
 
         var lastTick = 0
         for (ev in events) {
@@ -102,11 +120,15 @@ object MidiExporter {
             when (ev) {
                 is MidiEv.NoteOn -> {
                     buf.writeVarLen(delta)
-                    buf.write(0x90); buf.write(ev.pitch and 0x7F); buf.write(ev.vel and 0x7F)
+                    buf.write(0x90)
+                    buf.write(ev.pitch and 0x7F)
+                    buf.write(ev.vel and 0x7F)
                 }
                 is MidiEv.NoteOff -> {
                     buf.writeVarLen(delta)
-                    buf.write(0x80); buf.write(ev.pitch and 0x7F); buf.write(0x00)
+                    buf.write(0x80)
+                    buf.write(ev.pitch and 0x7F)
+                    buf.write(0x00)
                 }
                 is MidiEv.PitchBend -> {
                     buf.writeVarLen(delta)
@@ -139,7 +161,7 @@ object MidiExporter {
         endTick: Int,
         rateHz: Float,
         depthCents: Float,
-        ticksPerSec: Double
+        ticksPerSec: Double,
     ) {
         val periodTicks = (ticksPerSec / rateHz).toInt().coerceAtLeast(1)
         val depthSemitones = depthCents / 200f
@@ -158,7 +180,7 @@ object MidiExporter {
         events: MutableList<MidiEv>,
         startTick: Int,
         endTick: Int,
-        semitones: Float
+        semitones: Float,
     ) {
         val steps = 16
         val duration = endTick - startTick
@@ -175,7 +197,7 @@ object MidiExporter {
         events: MutableList<MidiEv>,
         startTick: Int,
         endTick: Int,
-        semitones: Float
+        semitones: Float,
     ) {
         val mid = (startTick + endTick) / 2
         addBendUp(events, startTick, mid, semitones)

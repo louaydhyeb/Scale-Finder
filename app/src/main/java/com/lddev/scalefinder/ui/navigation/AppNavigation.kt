@@ -6,8 +6,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +18,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -61,13 +61,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lddev.scalefinder.R
 import com.lddev.scalefinder.ui.HomeViewModel
 import com.lddev.scalefinder.ui.screens.CircleOfFifthsScreen
@@ -86,27 +86,46 @@ private const val KEY_TUTORIAL_DONE = "tutorial_done"
 
 sealed class NavIcon {
     data class Vector(val imageVector: ImageVector) : NavIcon()
-    data class Drawable(@DrawableRes val resId: Int, val tinted: Boolean = false) : NavIcon()
+
+    data class Drawable(
+        @DrawableRes val resId: Int,
+        val tinted: Boolean = false,
+    ) : NavIcon()
 }
 
 enum class AppRoute(
     val route: String,
     val labelRes: Int,
     val icon: NavIcon,
-    val descriptionRes: Int
+    val descriptionRes: Int,
 ) {
     HOME("home", R.string.nav_home, NavIcon.Drawable(R.drawable.ic_nav_home, tinted = true), R.string.tutorial_home_desc),
     TUNER("tuner", R.string.nav_tuner, NavIcon.Drawable(R.drawable.ic_nav_tuner, tinted = true), R.string.tutorial_tuner_desc),
-    SCALE_EXPLORER("scale_explorer", R.string.nav_scale_explorer, NavIcon.Drawable(R.drawable.ic_nav_scales, tinted = true), R.string.tutorial_scales_desc),
-    CIRCLE_OF_FIFTHS("circle_of_fifths", R.string.nav_circle_of_fifths, NavIcon.Drawable(R.drawable.ic_nav_circle, tinted = true), R.string.tutorial_circle_desc),
+    SCALE_EXPLORER(
+        "scale_explorer",
+        R.string.nav_scale_explorer,
+        NavIcon.Drawable(R.drawable.ic_nav_scales, tinted = true),
+        R.string.tutorial_scales_desc,
+    ),
+    CIRCLE_OF_FIFTHS(
+        "circle_of_fifths",
+        R.string.nav_circle_of_fifths,
+        NavIcon.Drawable(R.drawable.ic_nav_circle, tinted = true),
+        R.string.tutorial_circle_desc,
+    ),
     QUIZ("quiz", R.string.nav_quiz, NavIcon.Drawable(R.drawable.ic_nav_quiz, tinted = true), R.string.tutorial_quiz_desc),
-    TRANSCRIPTION("transcription", R.string.nav_transcription, NavIcon.Drawable(R.drawable.ic_nav_tab, tinted = true), R.string.tutorial_tab_desc);
+    TRANSCRIPTION(
+        "transcription",
+        R.string.nav_transcription,
+        NavIcon.Drawable(R.drawable.ic_nav_tab, tinted = true),
+        R.string.tutorial_tab_desc,
+    ),
 }
 
 @Composable
 fun AppNavigation(
     onToggleTheme: () -> Unit,
-    isDark: Boolean
+    isDark: Boolean,
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -135,28 +154,34 @@ fun AppNavigation(
         Row(Modifier.fillMaxSize()) {
             NavigationRail(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 AppRoute.entries.forEachIndexed { index, screen ->
                     val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                     NavigationRailItem(
-                        modifier = Modifier.onGloballyPositioned { coords ->
-                            itemBounds[index] = coords.boundsInRoot()
-                        },
+                        modifier =
+                            Modifier.onGloballyPositioned { coords ->
+                                itemBounds[index] = coords.boundsInRoot()
+                            },
                         icon = {
                             when (val navIcon = screen.icon) {
-                                is NavIcon.Vector -> Icon(
-                                    navIcon.imageVector,
-                                    contentDescription = stringResource(screen.labelRes)
-                                )
-                                is NavIcon.Drawable -> Icon(
-                                    painter = painterResource(navIcon.resId),
-                                    contentDescription = stringResource(screen.labelRes),
-                                    modifier = Modifier.size(24.dp),
-                                    tint = if (navIcon.tinted)
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    else Color.Unspecified
-                                )
+                                is NavIcon.Vector ->
+                                    Icon(
+                                        navIcon.imageVector,
+                                        contentDescription = stringResource(screen.labelRes),
+                                    )
+                                is NavIcon.Drawable ->
+                                    Icon(
+                                        painter = painterResource(navIcon.resId),
+                                        contentDescription = stringResource(screen.labelRes),
+                                        modifier = Modifier.size(24.dp),
+                                        tint =
+                                            if (navIcon.tinted) {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            } else {
+                                                Color.Unspecified
+                                            },
+                                    )
                             }
                         },
                         label = { Text(stringResource(screen.labelRes)) },
@@ -169,7 +194,7 @@ fun AppNavigation(
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
                     )
                 }
 
@@ -182,7 +207,7 @@ fun AppNavigation(
                             painter = painterResource(R.drawable.ic_nav_settings),
                             contentDescription = stringResource(R.string.settings_title),
                             modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     },
                     label = { Text(stringResource(R.string.settings_title)) },
@@ -195,7 +220,7 @@ fun AppNavigation(
                             launchSingleTop = true
                             restoreState = true
                         }
-                    }
+                    },
                 )
             }
 
@@ -203,7 +228,7 @@ fun AppNavigation(
                 NavHost(
                     navController = navController,
                     startDestination = AppRoute.HOME.route,
-                    modifier = Modifier.padding(innerPadding)
+                    modifier = Modifier.padding(innerPadding),
                 ) {
                     composable(AppRoute.HOME.route) {
                         HomeScreen(vm = homeVm)
@@ -227,7 +252,7 @@ fun AppNavigation(
                         SettingsScreen(
                             vm = homeVm,
                             isDark = isDark,
-                            onToggleTheme = onToggleTheme
+                            onToggleTheme = onToggleTheme,
                         )
                     }
                 }
@@ -239,10 +264,13 @@ fun AppNavigation(
                 step = tutorialStep,
                 itemBounds = itemBounds,
                 onNext = {
-                    if (tutorialStep < AppRoute.entries.size - 1) tutorialStep++
-                    else finishTutorial()
+                    if (tutorialStep < AppRoute.entries.size - 1) {
+                        tutorialStep++
+                    } else {
+                        finishTutorial()
+                    }
                 },
-                onSkip = { finishTutorial() }
+                onSkip = { finishTutorial() },
             )
         }
     }
@@ -253,7 +281,7 @@ private fun TutorialOverlay(
     step: Int,
     itemBounds: Map<Int, Rect>,
     onNext: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     val bounds = itemBounds[step] ?: return
     val routes = AppRoute.entries
@@ -275,15 +303,16 @@ private fun TutorialOverlay(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = { }
-                )
+                    onClick = { },
+                ),
         )
 
         // Layer 2: dark overlay with cutout (visual only, no pointer handling)
         Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
         ) {
             drawRect(Color.Black.copy(alpha = 0.72f))
 
@@ -292,74 +321,80 @@ private fun TutorialOverlay(
                 topLeft = Offset(bounds.left - padPx, bounds.top - padPx),
                 size = Size(bounds.width + padPx * 2, bounds.height + padPx * 2),
                 cornerRadius = CornerRadius(cornerPx),
-                blendMode = BlendMode.Clear
+                blendMode = BlendMode.Clear,
             )
         }
 
         // Layer 3: highlight border
         Box(
-            modifier = Modifier
-                .graphicsLayer {
-                    translationX = bounds.left - padPx
-                    translationY = bounds.top - padPx
-                }
+            modifier =
+                Modifier
+                    .graphicsLayer {
+                        translationX = bounds.left - padPx
+                        translationY = bounds.top - padPx
+                    },
         ) {
             val w = with(density) { (bounds.width + padPx * 2).toDp() }
             val h = with(density) { (bounds.height + padPx * 2).toDp() }
             Box(
                 Modifier
                     .size(w, h)
-                    .border(2.dp, primary, RoundedCornerShape(10.dp))
+                    .border(2.dp, primary, RoundedCornerShape(10.dp)),
             )
         }
 
         // Layer 4 (top): tooltip card — receives all touch events first
         Card(
-            modifier = Modifier
-                .onSizeChanged { cardHeight = it.height }
-                .offset {
-                    val marginPx = 12.dp.toPx()
-                    val idealY = bounds.top
-                    val maxY = if (overlayHeight > 0 && cardHeight > 0)
-                        (overlayHeight - cardHeight - marginPx).coerceAtLeast(0f)
-                    else idealY
-                    IntOffset(
-                        x = (bounds.right + 20.dp.toPx()).roundToInt(),
-                        y = idealY.roundToInt().coerceIn(marginPx.roundToInt(), maxY.roundToInt())
-                    )
-                }
-                .widthIn(max = 280.dp),
+            modifier =
+                Modifier
+                    .onSizeChanged { cardHeight = it.height }
+                    .offset {
+                        val marginPx = 12.dp.toPx()
+                        val idealY = bounds.top
+                        val maxY =
+                            if (overlayHeight > 0 && cardHeight > 0) {
+                                (overlayHeight - cardHeight - marginPx).coerceAtLeast(0f)
+                            } else {
+                                idealY
+                            }
+                        IntOffset(
+                            x = (bounds.right + 20.dp.toPx()).roundToInt(),
+                            y = idealY.roundToInt().coerceIn(marginPx.roundToInt(), maxY.roundToInt()),
+                        )
+                    }
+                    .widthIn(max = 280.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     text = stringResource(routes[step].labelRes),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = primary
+                    color = primary,
                 )
                 Text(
                     text = stringResource(routes[step].descriptionRes),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = stringResource(R.string.tutorial_step, step + 1, total),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (step < total - 1) {

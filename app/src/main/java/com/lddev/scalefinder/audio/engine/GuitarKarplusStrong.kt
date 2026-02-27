@@ -23,17 +23,17 @@ import kotlin.random.Random
 class GuitarKarplusStrong(
     private val brightness: Float = 0.5f,
     private val pluckPosition: Float = 0.13f,
-    private val decaySeconds: Float = 4.0f
+    private val decaySeconds: Float = 4.0f,
 ) : DspSource(
-    attackMs = 1f,
-    decayMs = 1f,
-    sustain = 1.0f,
-    releaseMs = 60f
-) {
-
+        attackMs = 1f,
+        decayMs = 1f,
+        sustain = 1.0f,
+        releaseMs = 60f,
+    ) {
     private val lock = Any()
     private var delayLine = FloatArray(1)
     private var delayIndex = 0
+
     @Volatile private var active = false
 
     private var lpState = 0f
@@ -62,8 +62,9 @@ class GuitarKarplusStrong(
             apPrevIn = 0f
             apPrevOut = 0f
 
-            loss = exp(-6.91 / (decaySeconds * sampleRate)).toFloat()
-                .coerceIn(LOSS_MIN, LOSS_MAX)
+            loss =
+                exp(-6.91 / (decaySeconds * sampleRate)).toFloat()
+                    .coerceIn(LOSS_MIN, LOSS_MAX)
 
             lpState = 0f
             dcX1 = 0f
@@ -145,12 +146,22 @@ class GuitarKarplusStrong(
     }
 
     private class Biquad {
-        private var b0 = 1f; private var b1 = 0f; private var b2 = 0f
-        private var a1 = 0f; private var a2 = 0f
-        private var x1 = 0f; private var x2 = 0f
-        private var y1 = 0f; private var y2 = 0f
+        private var b0 = 1f
+        private var b1 = 0f
+        private var b2 = 0f
+        private var a1 = 0f
+        private var a2 = 0f
+        private var x1 = 0f
+        private var x2 = 0f
+        private var y1 = 0f
+        private var y2 = 0f
 
-        fun setPeakEq(sr: Int, freq: Float, q: Float, gainDb: Float) {
+        fun setPeakEq(
+            sr: Int,
+            freq: Float,
+            q: Float,
+            gainDb: Float,
+        ) {
             val a = 10f.pow(gainDb / 40f)
             val w0 = (2.0 * PI * freq / sr).toFloat()
             val sinW = sin(w0)
@@ -166,13 +177,18 @@ class GuitarKarplusStrong(
 
         fun process(x: Float): Float {
             val y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
-            x2 = x1; x1 = x
-            y2 = y1; y1 = if (y.isNaN()) 0f else y
+            x2 = x1
+            x1 = x
+            y2 = y1
+            y1 = if (y.isNaN()) 0f else y
             return y1
         }
 
         fun reset() {
-            x1 = 0f; x2 = 0f; y1 = 0f; y2 = 0f
+            x1 = 0f
+            x2 = 0f
+            y1 = 0f
+            y2 = 0f
         }
     }
 

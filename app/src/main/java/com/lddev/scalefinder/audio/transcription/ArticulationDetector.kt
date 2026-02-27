@@ -9,11 +9,10 @@ import kotlin.math.roundToInt
  * detect guitar articulations: vibrato, bends, slides, hammer-ons, pull-offs.
  */
 object ArticulationDetector {
-
     private const val MIDI_OFFSET = 21
     private const val BINS_PER_SEMITONE = 3
     private const val CONTOUR_BINS = 264
-    private const val CENTS_PER_BIN = 100f / BINS_PER_SEMITONE  // ≈ 33.3
+    private const val CENTS_PER_BIN = 100f / BINS_PER_SEMITONE // ≈ 33.3
     private const val CENTROID_RADIUS = 4
 
     // Vibrato thresholds
@@ -36,7 +35,7 @@ object ArticulationDetector {
         val articulations: Set<Articulation>,
         val bendSemitones: Float = 0f,
         val vibratoRateHz: Float = 0f,
-        val vibratoDepthCents: Float = 0f
+        val vibratoDepthCents: Float = 0f,
     )
 
     /**
@@ -52,15 +51,17 @@ object ArticulationDetector {
         notes: List<BasicPitchDetector.NoteEvent>,
         contourFrames: List<FloatArray>,
         onsetFrames: List<FloatArray>,
-        framesPerSec: Double
+        framesPerSec: Double,
     ): List<NoteArticulations> {
         val secPerFrame = (1.0 / framesPerSec).toFloat()
 
         return notes.mapIndexed { idx, note ->
-            val startFrame = (note.startTimeSec / secPerFrame).roundToInt()
-                .coerceIn(0, contourFrames.size - 1)
-            val endFrame = (note.endTimeSec / secPerFrame).roundToInt()
-                .coerceIn(startFrame + 1, contourFrames.size)
+            val startFrame =
+                (note.startTimeSec / secPerFrame).roundToInt()
+                    .coerceIn(0, contourFrames.size - 1)
+            val endFrame =
+                (note.endTimeSec / secPerFrame).roundToInt()
+                    .coerceIn(startFrame + 1, contourFrames.size)
             val centerBin = (note.midiPitch - MIDI_OFFSET) * BINS_PER_SEMITONE + 1
 
             val pitchTrack = extractPitchTrack(contourFrames, startFrame, endFrame, centerBin)
@@ -80,8 +81,11 @@ object ArticulationDetector {
             // ── Bend ──
             val bend = detectBend(pitchTrack)
             if (bend != null) {
-                if (bend.second) arts.add(Articulation.BEND_RELEASE)
-                else arts.add(Articulation.BEND_UP)
+                if (bend.second) {
+                    arts.add(Articulation.BEND_RELEASE)
+                } else {
+                    arts.add(Articulation.BEND_UP)
+                }
                 bendSemi = bend.first
             }
 
@@ -105,7 +109,7 @@ object ArticulationDetector {
         contour: List<FloatArray>,
         startFrame: Int,
         endFrame: Int,
-        centerBin: Int
+        centerBin: Int,
     ): FloatArray {
         val length = endFrame - startFrame
         val track = FloatArray(length)
@@ -121,11 +125,12 @@ object ArticulationDetector {
                 sumWeight += w
                 sumWeightedPos += w * (b - centerBin)
             }
-            track[i] = if (sumWeight > 1e-6f) {
-                (sumWeightedPos / sumWeight) * CENTS_PER_BIN
-            } else {
-                0f
-            }
+            track[i] =
+                if (sumWeight > 1e-6f) {
+                    (sumWeightedPos / sumWeight) * CENTS_PER_BIN
+                } else {
+                    0f
+                }
         }
         return track
     }
@@ -135,7 +140,7 @@ object ArticulationDetector {
     /** Returns (rateHz, depthCents) or null. */
     private fun detectVibrato(
         pitchTrack: FloatArray,
-        framesPerSec: Double
+        framesPerSec: Double,
     ): Pair<Float, Float>? {
         if (pitchTrack.size < VIBRATO_MIN_FRAMES) return null
 
@@ -169,8 +174,9 @@ object ArticulationDetector {
 
         val quarter = pitchTrack.size / 4
         val startAvg = pitchTrack.take(quarter.coerceAtLeast(1)).average().toFloat()
-        val midAvg = pitchTrack.drop(quarter)
-            .take(pitchTrack.size / 2).average().toFloat()
+        val midAvg =
+            pitchTrack.drop(quarter)
+                .take(pitchTrack.size / 2).average().toFloat()
         val endAvg = pitchTrack.takeLast(quarter.coerceAtLeast(1)).average().toFloat()
 
         val rise = midAvg - startAvg
@@ -203,10 +209,11 @@ object ArticulationDetector {
         noteIndex: Int,
         allNotes: List<BasicPitchDetector.NoteEvent>,
         onsetFrames: List<FloatArray>,
-        secPerFrame: Float
+        secPerFrame: Float,
     ): Articulation? {
-        val frameIdx = (note.startTimeSec / secPerFrame).roundToInt()
-            .coerceIn(0, onsetFrames.size - 1)
+        val frameIdx =
+            (note.startTimeSec / secPerFrame).roundToInt()
+                .coerceIn(0, onsetFrames.size - 1)
         val pitchIdx = (note.midiPitch - MIDI_OFFSET).coerceIn(0, 87)
         val onsetProb = onsetFrames[frameIdx][pitchIdx]
         if (onsetProb > LEGATO_ONSET_THRESHOLD) return null
@@ -216,8 +223,12 @@ object ArticulationDetector {
         val gap = note.startTimeSec - prev.endTimeSec
         if (gap > 0.08f) return null
 
-        return if (note.midiPitch > prev.midiPitch) Articulation.HAMMER_ON
-        else if (note.midiPitch < prev.midiPitch) Articulation.PULL_OFF
-        else null
+        return if (note.midiPitch > prev.midiPitch) {
+            Articulation.HAMMER_ON
+        } else if (note.midiPitch < prev.midiPitch) {
+            Articulation.PULL_OFF
+        } else {
+            null
+        }
     }
 }

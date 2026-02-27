@@ -21,32 +21,32 @@ import com.lddev.scalefinder.ui.QuizAnswer
 fun WrongAnswerCard(answer: QuizAnswer) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 answer.question.prompt,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(4.dp))
             if (answer.selectedIndex >= 0) {
                 Text(
                     stringResource(R.string.quiz_your_answer, answer.question.choices[answer.selectedIndex]),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             } else {
                 Text(
                     stringResource(R.string.quiz_no_answer),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
             Text(
                 stringResource(R.string.quiz_correct_answer, answer.question.choices[answer.question.correctIndex]),
                 style = MaterialTheme.typography.bodySmall,
-                color = CorrectGreen
+                color = CorrectGreen,
             )
         }
     }
