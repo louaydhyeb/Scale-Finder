@@ -20,13 +20,13 @@ data class PitchResult(
     val frequency: Float,
     val noteName: String,
     val octave: Int,
-    val cents: Float
+    val cents: Float,
 )
 
 class PitchDetector(
     private val sampleRate: Int = 44100,
     private val bufferSize: Int = 4096,
-    private val yinThreshold: Float = 0.15f
+    private val yinThreshold: Float = 0.15f,
 ) {
     private var audioRecord: AudioRecord? = null
     private var detectionJob: Job? = null
@@ -41,33 +41,37 @@ class PitchDetector(
     fun start() {
         if (audioRecord != null) return
 
-        val minBufSize = AudioRecord.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_FLOAT
-        )
+        val minBufSize =
+            AudioRecord.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_FLOAT,
+            )
         val actualBufSize = maxOf(bufferSize * Float.SIZE_BYTES, minBufSize)
 
-        audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_FLOAT,
-            actualBufSize
-        ).also { it.startRecording() }
+        audioRecord =
+            AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_FLOAT,
+                actualBufSize,
+            ).also { it.startRecording() }
 
-        detectionJob = scope.launch {
-            val buffer = FloatArray(bufferSize)
-            while (isActive) {
-                val read = audioRecord?.read(
-                    buffer, 0, bufferSize, AudioRecord.READ_BLOCKING
-                ) ?: -1
-                if (read > 0) {
-                    val freq = detectPitch(buffer)
-                    _pitchFlow.emit(if (freq > 0) frequencyToNote(freq) else null)
+        detectionJob =
+            scope.launch {
+                val buffer = FloatArray(bufferSize)
+                while (isActive) {
+                    val read =
+                        audioRecord?.read(
+                            buffer, 0, bufferSize, AudioRecord.READ_BLOCKING,
+                        ) ?: -1
+                    if (read > 0) {
+                        val freq = detectPitch(buffer)
+                        _pitchFlow.emit(if (freq > 0) frequencyToNote(freq) else null)
+                    }
                 }
             }
-        }
     }
 
     fun stop() {
@@ -75,7 +79,8 @@ class PitchDetector(
         detectionJob = null
         try {
             audioRecord?.stop()
-        } catch (_: IllegalStateException) { }
+        } catch (_: IllegalStateException) {
+        }
         audioRecord?.release()
         audioRecord = null
     }
@@ -117,8 +122,12 @@ class PitchDetector(
         var runningSum = 0f
         for (tau in 1 until halfBuffer) {
             runningSum += yinBuffer[tau]
-            yinBuffer[tau] = if (runningSum == 0f) 1f
-            else yinBuffer[tau] * tau / runningSum
+            yinBuffer[tau] =
+                if (runningSum == 0f) {
+                    1f
+                } else {
+                    yinBuffer[tau] * tau / runningSum
+                }
         }
 
         // Step 3: Absolute threshold — find the first dip below threshold
@@ -138,16 +147,20 @@ class PitchDetector(
         if (tauEstimate == -1) return -1f
 
         // Step 4: Parabolic interpolation for sub-sample accuracy
-        val betterTau: Float = if (tauEstimate in 1 until halfBuffer - 1) {
-            val s0 = yinBuffer[tauEstimate - 1]
-            val s1 = yinBuffer[tauEstimate]
-            val s2 = yinBuffer[tauEstimate + 1]
-            val denom = 2f * (2f * s1 - s2 - s0)
-            if (denom != 0f) tauEstimate + (s2 - s0) / denom
-            else tauEstimate.toFloat()
-        } else {
-            tauEstimate.toFloat()
-        }
+        val betterTau: Float =
+            if (tauEstimate in 1 until halfBuffer - 1) {
+                val s0 = yinBuffer[tauEstimate - 1]
+                val s1 = yinBuffer[tauEstimate]
+                val s2 = yinBuffer[tauEstimate + 1]
+                val denom = 2f * (2f * s1 - s2 - s0)
+                if (denom != 0f) {
+                    tauEstimate + (s2 - s0) / denom
+                } else {
+                    tauEstimate.toFloat()
+                }
+            } else {
+                tauEstimate.toFloat()
+            }
 
         val freq = sampleRate.toFloat() / betterTau
         return if (freq in 60f..1200f) freq else -1f

@@ -54,7 +54,7 @@ fun GuitarFretboard(
     invertStrings: Boolean = false,
     showNoteNames: Boolean = false,
     theme: FretboardTheme = FretboardTheme.ROSEWOOD,
-    onNoteTapped: (stringIndex: Int, fret: Int, note: Note) -> Unit = { _, _, _ -> }
+    onNoteTapped: (stringIndex: Int, fret: Int, note: Note) -> Unit = { _, _, _ -> },
 ) {
     val strings = tuning.openNotes
     val tc = theme.colors
@@ -79,9 +79,10 @@ fun GuitarFretboard(
                     val stringSpacing = boxSize.height / (strings.size + 1f)
                     val fretSpacing = boxSize.width / (fretCount + 1f)
 
-                    val visualIndex = ((down.position.y / stringSpacing) - 1f)
-                        .roundToInt()
-                        .coerceIn(0, strings.lastIndex)
+                    val visualIndex =
+                        ((down.position.y / stringSpacing) - 1f)
+                            .roundToInt()
+                            .coerceIn(0, strings.lastIndex)
 
                     val dataIndex = if (invertStrings) (strings.lastIndex - visualIndex) else visualIndex
                     val f = ((down.position.x / fretSpacing) - 0.5f).roundToInt() + fretStart
@@ -92,7 +93,7 @@ fun GuitarFretboard(
                     // You can optionally wait for release:
                     waitForUpOrCancellation()
                 }
-            }
+            },
     ) {
         val anim = remember { Animatable(0f) }
         LaunchedEffect(scale, chordTones, highlights) {
@@ -110,14 +111,16 @@ fun GuitarFretboard(
 
             if (tc.edgeDarkenTop > 0f || tc.edgeDarkenBottom > 0f) {
                 drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = tc.edgeDarkenTop),
-                            Color.Transparent,
-                            Color.Transparent,
-                            Color.Black.copy(alpha = tc.edgeDarkenBottom)
-                        )
-                    )
+                    brush =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    Color.Black.copy(alpha = tc.edgeDarkenTop),
+                                    Color.Transparent,
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = tc.edgeDarkenBottom),
+                                ),
+                        ),
                 )
             }
 
@@ -131,12 +134,16 @@ fun GuitarFretboard(
                     val alpha = grain.nextFloat() * (grainRange.endInclusive - grainRange.start) + grainRange.start
                     val sw = grain.nextFloat() * 2f + 0.5f
                     drawLine(
-                        color = if (dark) tc.grainDark.copy(alpha = alpha)
-                                else tc.grainLight.copy(alpha = alpha * 0.8f),
+                        color =
+                            if (dark) {
+                                tc.grainDark.copy(alpha = alpha)
+                            } else {
+                                tc.grainLight.copy(alpha = alpha * 0.8f)
+                            },
                         start = Offset(0f, y),
                         end = Offset(width, y + drift),
                         strokeWidth = sw,
-                        cap = StrokeCap.Round
+                        cap = StrokeCap.Round,
                     )
                 }
                 repeat(10) {
@@ -147,7 +154,7 @@ fun GuitarFretboard(
                         start = Offset(0f, y),
                         end = Offset(width, y + drift),
                         strokeWidth = grain.nextFloat() * 4f + 2f,
-                        cap = StrokeCap.Round
+                        cap = StrokeCap.Round,
                     )
                 }
             }
@@ -164,35 +171,41 @@ fun GuitarFretboard(
                     val nutW = 10f
                     drawLine(
                         color = tc.nutOutline,
-                        start = Offset(x, fretTopY), end = Offset(x, fretBotY),
-                        strokeWidth = nutW + 3f
+                        start = Offset(x, fretTopY),
+                        end = Offset(x, fretBotY),
+                        strokeWidth = nutW + 3f,
                     )
                     drawLine(
                         color = tc.nutBody,
-                        start = Offset(x, fretTopY), end = Offset(x, fretBotY),
-                        strokeWidth = nutW
+                        start = Offset(x, fretTopY),
+                        end = Offset(x, fretBotY),
+                        strokeWidth = nutW,
                     )
                     drawLine(
                         color = tc.nutHighlight.copy(alpha = 0.7f),
-                        start = Offset(x + 1f, fretTopY), end = Offset(x + 1f, fretBotY),
-                        strokeWidth = nutW * 0.3f
+                        start = Offset(x + 1f, fretTopY),
+                        end = Offset(x + 1f, fretBotY),
+                        strokeWidth = nutW * 0.3f,
                     )
                 } else {
                     val fw = if (highContrast) 5f else 4f
                     drawLine(
                         color = tc.fretShadow,
-                        start = Offset(x, fretTopY), end = Offset(x, fretBotY),
-                        strokeWidth = fw + 2f
+                        start = Offset(x, fretTopY),
+                        end = Offset(x, fretBotY),
+                        strokeWidth = fw + 2f,
                     )
                     drawLine(
                         color = tc.fretBody,
-                        start = Offset(x, fretTopY), end = Offset(x, fretBotY),
-                        strokeWidth = fw
+                        start = Offset(x, fretTopY),
+                        end = Offset(x, fretBotY),
+                        strokeWidth = fw,
                     )
                     drawLine(
                         color = tc.fretHighlight,
-                        start = Offset(x + 0.5f, fretTopY), end = Offset(x + 0.5f, fretBotY),
-                        strokeWidth = fw * 0.35f
+                        start = Offset(x + 0.5f, fretTopY),
+                        end = Offset(x + 0.5f, fretBotY),
+                        strokeWidth = fw * 0.35f,
                     )
                 }
             }
@@ -204,39 +217,40 @@ fun GuitarFretboard(
 
                 // Wound strings (E-A-D) are thicker & bronze; plain (G-B-E) are thinner & silver
                 val isWound = s <= 2
-                val baseThick = when (s) {
-                    0 -> 5.0f   // low E
-                    1 -> 4.2f   // A
-                    2 -> 3.5f   // D
-                    3 -> 2.5f   // G
-                    4 -> 2.0f   // B
-                    5 -> 1.5f   // high E
-                    else -> 2.5f
-                }
+                val baseThick =
+                    when (s) {
+                        0 -> 5.0f // low E
+                        1 -> 4.2f // A
+                        2 -> 3.5f // D
+                        3 -> 2.5f // G
+                        4 -> 2.0f // B
+                        5 -> 1.5f // high E
+                        else -> 2.5f
+                    }
                 val thick = if (highContrast) baseThick * 1.2f else baseThick
                 val startX = fretSpacing
-                val endX   = width - fretSpacing * 0.25f
+                val endX = width - fretSpacing * 0.25f
 
                 drawLine(
                     color = Color.Black.copy(alpha = tc.stringShadowAlpha),
                     start = Offset(startX, y + 1.5f),
-                    end   = Offset(endX,   y + 1.5f),
+                    end = Offset(endX, y + 1.5f),
                     strokeWidth = thick + 1f,
-                    cap = StrokeCap.Round
+                    cap = StrokeCap.Round,
                 )
                 drawLine(
                     color = if (isWound) tc.woundString else tc.plainString,
                     start = Offset(startX, y),
-                    end   = Offset(endX,   y),
+                    end = Offset(endX, y),
                     strokeWidth = thick,
-                    cap = StrokeCap.Round
+                    cap = StrokeCap.Round,
                 )
                 drawLine(
                     color = Color.White.copy(alpha = if (isWound) tc.woundSpecularAlpha else tc.plainSpecularAlpha),
                     start = Offset(startX, y - thick * 0.2f),
-                    end   = Offset(endX,   y - thick * 0.2f),
+                    end = Offset(endX, y - thick * 0.2f),
                     strokeWidth = thick * 0.3f,
-                    cap = StrokeCap.Round
+                    cap = StrokeCap.Round,
                 )
             }
 
@@ -246,66 +260,73 @@ fun GuitarFretboard(
 
             markerFrets.filter { it in fretStart..(fretStart + fretCount) }.forEach { f ->
                 val x = fretSpacing * (f - fretStart + 0.5f)
-                val positions = if (f == 12) listOf(height * 0.35f, height * 0.65f)
-                               else          listOf(height * 0.5f)
+                val positions =
+                    if (f == 12) {
+                        listOf(height * 0.35f, height * 0.65f)
+                    } else {
+                        listOf(height * 0.5f)
+                    }
 
                 positions.forEach { cy ->
                     drawCircle(
                         color = Color.Black.copy(alpha = tc.inlayShadowAlpha),
                         radius = dotR,
-                        center = Offset(x + 1f, cy + 1f)
+                        center = Offset(x + 1f, cy + 1f),
                     )
                     drawCircle(
                         color = tc.inlayBody,
                         radius = dotR,
-                        center = Offset(x, cy)
+                        center = Offset(x, cy),
                     )
                     drawCircle(
                         color = Color.White.copy(alpha = tc.inlayHighlightAlpha),
                         radius = dotR * 0.40f,
-                        center = Offset(x - dotR * 0.20f, cy - dotR * 0.20f)
+                        center = Offset(x - dotR * 0.20f, cy - dotR * 0.20f),
                     )
                 }
             }
 
             // Draw note names on each fret (draw first, so scale markers appear on top)
             if (showNoteNames) {
-                val noteColorArgb = AndroidColor.argb(
-                    (noteColor.alpha * 255).toInt(),
-                    (noteColor.red * 255).toInt(),
-                    (noteColor.green * 255).toInt(),
-                    (noteColor.blue * 255).toInt()
-                )
-                
+                val noteColorArgb =
+                    AndroidColor.argb(
+                        (noteColor.alpha * 255).toInt(),
+                        (noteColor.red * 255).toInt(),
+                        (noteColor.green * 255).toInt(),
+                        (noteColor.blue * 255).toInt(),
+                    )
+
                 drawIntoCanvas { canvas ->
-                    val textPaint = Paint().apply {
-                        isAntiAlias = true
-                        textAlign = Paint.Align.CENTER
-                        textSize = if (highContrast) 14f * density else 12f * density
-                    }
-                    
+                    val textPaint =
+                        Paint().apply {
+                            isAntiAlias = true
+                            textAlign = Paint.Align.CENTER
+                            textSize = if (highContrast) 14f * density else 12f * density
+                        }
+
                     for (s in strings.indices) {
                         for (f in fretStart..(fretStart + fretCount)) {
                             val note = Note.fromSemitone(strings[s].semitone + f)
                             val visualIndex = if (invertStrings) (strings.lastIndex - s) else s
                             val y = stringSpacing * (visualIndex + 1)
                             val x = fretSpacing * (f - fretStart + 0.5f)
-                            
+
                             // Only show note names on frets that don't have scale markers (to avoid clutter)
                             val hasScaleMarker = scale != null && note.semitone in scale.tones
                             val hasHighlight = highlights.any { it.stringIndex == s && it.fret == f }
-                            
+
                             // Show note names on all frets, but with lower opacity if there's a marker
                             val opacity = if (hasScaleMarker || hasHighlight) 0.4f else 0.6f
                             val alpha = (opacity * 255).toInt()
-                            
-                            textPaint.color = AndroidColor.argb(
-                                alpha,
-                                AndroidColor.red(noteColorArgb),
-                                AndroidColor.green(noteColorArgb),
-                                AndroidColor.blue(noteColorArgb)
-                            )
-                            
+
+                            textPaint.color =
+                                AndroidColor.argb(
+                                    alpha,
+                                    AndroidColor.red(noteColorArgb),
+                                    AndroidColor.green(noteColorArgb),
+                                    AndroidColor.blue(noteColorArgb),
+                                )
+
                             // Format note name
                             val noteName = note.toString()
                             canvas.nativeCanvas.drawText(noteName, x, y + 4f * density, textPaint)
@@ -327,23 +348,42 @@ fun GuitarFretboard(
                             val visualIndex = if (invertStrings) (strings.lastIndex - s) else s
                             val y = stringSpacing * (visualIndex + 1)
                             val x = fretSpacing * (f - fretStart + 0.5f)
-                            val color = when {
-                                isRoot && showRoot -> rootColor
-                                isChordTone -> chordColor
-                                else -> scaleColor
-                            }
-                            
+                            val color =
+                                when {
+                                    isRoot && showRoot -> rootColor
+                                    isChordTone -> chordColor
+                                    else -> scaleColor
+                                }
+
                             // Make scale markers more visible when note names are shown
                             val baseAlpha = if (showNoteNames) 0.9f else 0.95f
-                            val strokeWidth = if (showNoteNames && highContrast) 10f else if (showNoteNames) 8f else if (highContrast) 8f else 6f
-                            val fillAlpha = if (showNoteNames && highContrast) 0.4f else if (showNoteNames) 0.3f else if (highContrast) 0.25f else 0.12f
-                            
+                            val strokeWidth =
+                                if (showNoteNames && highContrast) {
+                                    10f
+                                } else if (showNoteNames) {
+                                    8f
+                                } else if (highContrast) {
+                                    8f
+                                } else {
+                                    6f
+                                }
+                            val fillAlpha =
+                                if (showNoteNames && highContrast) {
+                                    0.4f
+                                } else if (showNoteNames) {
+                                    0.3f
+                                } else if (highContrast) {
+                                    0.25f
+                                } else {
+                                    0.12f
+                                }
+
                             if (isRoot && showRoot) {
                                 // Filled root note
                                 drawCircle(
                                     color = color.copy(alpha = baseAlpha),
                                     radius = if (showNoteNames) 18f else 16f,
-                                    center = Offset(x, y)
+                                    center = Offset(x, y),
                                 )
                             } else {
                                 // outer ring for note marker
@@ -351,13 +391,13 @@ fun GuitarFretboard(
                                     color = color.copy(alpha = if (showNoteNames) baseAlpha else (0.6f + 0.35f * anim.value)),
                                     radius = if (showNoteNames) 18f else 16f,
                                     center = Offset(x, y),
-                                    style = Stroke(width = strokeWidth)
+                                    style = Stroke(width = strokeWidth),
                                 )
                                 // subtle fill
                                 drawCircle(
                                     color = color.copy(alpha = fillAlpha),
                                     radius = if (showNoteNames) 18f else 16f,
-                                    center = Offset(x, y)
+                                    center = Offset(x, y),
                                 )
                             }
                         }
@@ -375,7 +415,7 @@ fun GuitarFretboard(
                         drawCircle(
                             color = h.color.copy(alpha = 0.95f),
                             radius = if (highContrast) 16f else 14f,
-                            center = Offset(x, y)
+                            center = Offset(x, y),
                         )
                     }
                 }

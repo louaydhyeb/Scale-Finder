@@ -17,7 +17,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class AudioEngine(
-    private val sampleRate: Int = SAMPLE_RATE
+    private val sampleRate: Int = SAMPLE_RATE,
 ) {
     var isStarted = false
         private set
@@ -40,28 +40,30 @@ class AudioEngine(
     fun start() {
         if (isStarted) return
 
-        val minBuf = AudioTrack.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_FLOAT
-        )
+        val minBuf =
+            AudioTrack.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_FLOAT,
+            )
 
-        val builder = AudioTrack.Builder()
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            .setAudioFormat(
-                AudioFormat.Builder()
-                    .setSampleRate(sampleRate)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                    .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
-                    .build()
-            )
-            .setBufferSizeInBytes(minBuf)
-            .setTransferMode(AudioTrack.MODE_STREAM)
+        val builder =
+            AudioTrack.Builder()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build(),
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setSampleRate(sampleRate)
+                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                        .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
+                        .build(),
+                )
+                .setBufferSizeInBytes(minBuf)
+                .setTransferMode(AudioTrack.MODE_STREAM)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
@@ -72,11 +74,12 @@ class AudioEngine(
         newTrack.play()
         isStarted = true
 
-        val audioThread = Executors.newSingleThreadExecutor { r ->
-            Thread(r, "AudioEngine").apply {
-                priority = Thread.MAX_PRIORITY
+        val audioThread =
+            Executors.newSingleThreadExecutor { r ->
+                Thread(r, "AudioEngine").apply {
+                    priority = Thread.MAX_PRIORITY
+                }
             }
-        }
         executor = audioThread
         val newScope = CoroutineScope(SupervisorJob() + audioThread.asCoroutineDispatcher())
         scope = newScope
@@ -85,7 +88,9 @@ class AudioEngine(
             while (isActive) {
                 for (i in buf.indices) {
                     var sample = 0f
-                    for (dsp in dsps) { sample += dsp.compute() }
+                    for (dsp in dsps) {
+                        sample += dsp.compute()
+                    }
                     buf[i] = sample.coerceIn(-1f, 1f)
                 }
                 newTrack.write(buf, 0, buf.size, AudioTrack.WRITE_BLOCKING)
@@ -120,6 +125,7 @@ class AudioEngine(
 
     companion object {
         const val SAMPLE_RATE = 44100
+
         /** 128 frames ≈ 2.9 ms @ 44 100 Hz. */
         private const val RENDER_FRAMES = 128
 

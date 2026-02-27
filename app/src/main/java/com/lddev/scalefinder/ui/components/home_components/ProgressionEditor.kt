@@ -83,7 +83,7 @@ fun ProgressionEditor(
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onBPMChange: (Int) -> Unit,
-    onToggleLoop: () -> Unit
+    onToggleLoop: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
         SectionHeader(icon = Icons.Default.Star, title = stringResource(R.string.chord_progression))
@@ -93,7 +93,7 @@ fun ProgressionEditor(
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             ChordPicker(onAdd)
         }
@@ -107,7 +107,7 @@ fun ProgressionEditor(
                 onPlay = onPlay,
                 onStop = onStop,
                 onBPMChange = onBPMChange,
-                onToggleLoop = onToggleLoop
+                onToggleLoop = onToggleLoop,
             )
         }
 
@@ -115,7 +115,7 @@ fun ProgressionEditor(
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(
                 items = progression,
-                key = { index, chord -> "${chord.root}${chord.quality}${index}" }
+                key = { index, chord -> "${chord.root}${chord.quality}$index" },
             ) { idx, chord ->
                 ChordCard(
                     chord = chord,
@@ -125,7 +125,7 @@ fun ProgressionEditor(
                     onMoveRight = onMoveRight,
                     onSelect = onSelect,
                     onPlayArpeggio = onPlayArpeggio,
-                    onRemove = onRemove
+                    onRemove = onRemove,
                 )
             }
         }
@@ -141,17 +141,19 @@ private fun ChordCard(
     onMoveRight: (Int) -> Unit,
     onSelect: (Int) -> Unit,
     onPlayArpeggio: (Int) -> Unit,
-    onRemove: (Int) -> Unit
+    onRemove: (Int) -> Unit,
 ) {
     var cardScale by remember { mutableFloatStateOf(0.8f) }
-    val scaleAnimation = animateFloatAsState(
-        targetValue = cardScale,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "card_scale"
-    )
+    val scaleAnimation =
+        animateFloatAsState(
+            targetValue = cardScale,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "card_scale",
+        )
 
     LaunchedEffect(chord) {
         delay(50)
@@ -160,7 +162,7 @@ private fun ChordCard(
     val glowAlpha by animateFloatAsState(
         targetValue = if (isCurrentlyPlaying) 1f else 0f,
         animationSpec = tween(durationMillis = 200),
-        label = "glow"
+        label = "glow",
     )
 
     val moveLeftDesc = stringResource(R.string.move_left)
@@ -169,54 +171,62 @@ private fun ChordCard(
     val moveRightDesc = stringResource(R.string.move_right)
     val removeChordDesc = stringResource(R.string.remove_chord)
 
-    val highlightBorder = if (glowAlpha > 0f) {
-        Modifier.border(
-            width = 2.dp,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha),
-            shape = MaterialTheme.shapes.medium
-        )
-    } else Modifier
+    val highlightBorder =
+        if (glowAlpha > 0f) {
+            Modifier.border(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha),
+                shape = MaterialTheme.shapes.medium,
+            )
+        } else {
+            Modifier
+        }
 
     OutlinedCard(
-        modifier = Modifier
-            .scale(scaleAnimation.value)
-            .then(highlightBorder)
+        modifier =
+            Modifier
+                .scale(scaleAnimation.value)
+                .then(highlightBorder),
     ) {
         Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = chord.toString(),
                 style = MaterialTheme.typography.titleSmall,
-                color = if (isCurrentlyPlaying) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface
+                color =
+                    if (isCurrentlyPlaying) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
             )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = { onMoveLeft(index) },
-                    modifier = Modifier.semantics { contentDescription = moveLeftDesc }
+                    modifier = Modifier.semantics { contentDescription = moveLeftDesc },
                 ) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = moveLeftDesc)
                 }
                 IconButton(
                     onClick = { onSelect(index) },
-                    modifier = Modifier.semantics { contentDescription = selectChordDesc }
+                    modifier = Modifier.semantics { contentDescription = selectChordDesc },
                 ) {
                     Icon(Icons.Default.CheckCircle, contentDescription = selectChordDesc, tint = MaterialTheme.colorScheme.primary)
                 }
                 IconButton(
                     onClick = { onPlayArpeggio(index) },
-                    modifier = Modifier.semantics { contentDescription = playArpeggioDesc }
+                    modifier = Modifier.semantics { contentDescription = playArpeggioDesc },
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = playArpeggioDesc, tint = MaterialTheme.colorScheme.secondary)
                 }
                 IconButton(
                     onClick = { onMoveRight(index) },
-                    modifier = Modifier.semantics { contentDescription = moveRightDesc }
+                    modifier = Modifier.semantics { contentDescription = moveRightDesc },
                 ) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = moveRightDesc)
                 }
                 IconButton(
                     onClick = { onRemove(index) },
-                    modifier = Modifier.semantics { contentDescription = removeChordDesc }
+                    modifier = Modifier.semantics { contentDescription = removeChordDesc },
                 ) {
                     Icon(Icons.Default.Delete, contentDescription = removeChordDesc, tint = MaterialTheme.colorScheme.error)
                 }
@@ -233,41 +243,46 @@ private fun ProgressionPlaybackBar(
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onBPMChange: (Int) -> Unit,
-    onToggleLoop: () -> Unit
+    onToggleLoop: () -> Unit,
 ) {
     val playDesc = stringResource(R.string.content_play_progression)
     val stopDesc = stringResource(R.string.content_stop_progression)
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Button(
                 onClick = { if (isPlaying) onStop() else onPlay() },
-                modifier = Modifier.semantics {
-                    contentDescription = if (isPlaying) stopDesc else playDesc
-                }
+                modifier =
+                    Modifier.semantics {
+                        contentDescription = if (isPlaying) stopDesc else playDesc
+                    },
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Clear else Icons.Default.PlayArrow,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    if (isPlaying) stringResource(R.string.stop_progression)
-                    else stringResource(R.string.play_progression)
+                    if (isPlaying) {
+                        stringResource(R.string.stop_progression)
+                    } else {
+                        stringResource(R.string.play_progression)
+                    },
                 )
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = { onBPMChange(bpm - 5) },
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 ) {
                     Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.decrease))
                 }
@@ -275,17 +290,17 @@ private fun ProgressionPlaybackBar(
                     text = "$bpm",
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.width(36.dp),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 IconButton(
                     onClick = { onBPMChange(bpm + 5) },
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 ) {
                     Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.increase))
                 }
                 Text(
                     stringResource(R.string.bpm),
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
                 )
             }
 
@@ -296,14 +311,22 @@ private fun ProgressionPlaybackBar(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp).rotate(if (loopEnabled) 0f else 0f),
-                    tint = if (loopEnabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    tint =
+                        if (loopEnabled) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        },
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     stringResource(R.string.loop_progression),
-                    color = if (loopEnabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color =
+                        if (loopEnabled) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        },
                 )
             }
         }
@@ -327,11 +350,14 @@ private fun ChordPicker(onAdd: (Chord) -> Unit) {
             readOnly = true,
             label = { Text(rootLabel) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedRoot) },
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).semantics { contentDescription = rootSelectorDesc }
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).semantics { contentDescription = rootSelectorDesc },
         )
         DropdownMenu(expanded = expandedRoot, onDismissRequest = { expandedRoot = false }) {
             Note.entries.forEach { n ->
-                DropdownMenuItem(text = { Text(n.toString()) }, onClick = { root = n; expandedRoot = false })
+                DropdownMenuItem(text = { Text(n.toString()) }, onClick = {
+                    root = n
+                    expandedRoot = false
+                })
             }
         }
     }
@@ -346,24 +372,29 @@ private fun ChordPicker(onAdd: (Chord) -> Unit) {
             readOnly = true,
             label = { Text(qualityLabel) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedQuality) },
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).semantics { contentDescription = qualitySelectorDesc }
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).semantics { contentDescription = qualitySelectorDesc },
         )
         DropdownMenu(expanded = expandedQuality, onDismissRequest = { expandedQuality = false }) {
             ChordQuality.entries.forEach { q ->
-                DropdownMenuItem(text = { Text(q.display) }, onClick = { quality = q; expandedQuality = false })
+                DropdownMenuItem(text = { Text(q.display) }, onClick = {
+                    quality = q
+                    expandedQuality = false
+                })
             }
         }
     }
 
     var addButtonPressed by remember { mutableStateOf(false) }
-    val addButtonScale = animateFloatAsState(
-        targetValue = if (addButtonPressed) 0.95f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "add_button_scale"
-    )
+    val addButtonScale =
+        animateFloatAsState(
+            targetValue = if (addButtonPressed) 0.95f else 1f,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "add_button_scale",
+        )
 
     LaunchedEffect(addButtonPressed) {
         if (addButtonPressed) {
@@ -378,10 +409,11 @@ private fun ChordPicker(onAdd: (Chord) -> Unit) {
             addButtonPressed = true
             onAdd(Chord(root, quality))
         },
-        modifier = Modifier
-            .height(48.dp)
-            .scale(addButtonScale.value)
-            .semantics { contentDescription = addChordDesc }
+        modifier =
+            Modifier
+                .height(48.dp)
+                .scale(addButtonScale.value)
+                .semantics { contentDescription = addChordDesc },
     ) {
         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.size(8.dp))

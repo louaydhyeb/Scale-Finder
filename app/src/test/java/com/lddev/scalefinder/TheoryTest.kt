@@ -12,7 +12,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TheoryTest {
-
     // --- Note ---
     @Test
     fun note_fromSemitone_wrapsCorrectly() {
@@ -55,10 +54,10 @@ class TheoryTest {
     fun chord_g7_hasFourTones() {
         val chord = Chord(Note.G, ChordQuality.DOMINANT7)
         assertEquals(4, chord.tones.size)
-        assertTrue(chord.tones.contains(7))  // G
+        assertTrue(chord.tones.contains(7)) // G
         assertTrue(chord.tones.contains(11)) // B
-        assertTrue(chord.tones.contains(2))  // D
-        assertTrue(chord.tones.contains(5))  // F
+        assertTrue(chord.tones.contains(2)) // D
+        assertTrue(chord.tones.contains(5)) // F
     }
 
     @Test
@@ -158,12 +157,13 @@ class TheoryTest {
 
     @Test
     fun suggestScalesForProgression_returnsAtMost12() {
-        val prog = listOf(
-            Chord(Note.C, ChordQuality.MAJOR),
-            Chord(Note.G, ChordQuality.DOMINANT7),
-            Chord(Note.A, ChordQuality.MINOR),
-            Chord(Note.F, ChordQuality.MAJOR)
-        )
+        val prog =
+            listOf(
+                Chord(Note.C, ChordQuality.MAJOR),
+                Chord(Note.G, ChordQuality.DOMINANT7),
+                Chord(Note.A, ChordQuality.MINOR),
+                Chord(Note.F, ChordQuality.MAJOR),
+            )
         val suggestions = Theory.suggestScalesForProgression(prog)
         assertTrue(suggestions.size <= 12)
     }
@@ -177,6 +177,3 @@ class TheoryTest {
         }
     }
 }
-
-
-

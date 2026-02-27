@@ -15,9 +15,8 @@ class ReverbEffect(
     input: Dsp,
     preDelayMs: Int = 20,
     decay: Float = 0.55f,
-    mix: Float = 0.25f
+    mix: Float = 0.25f,
 ) : DspEffect(input) {
-
     private val combDelayTimesMs = floatArrayOf(29.7f, 37.1f, 41.1f, 43.7f)
     private val allpassDelayTimesMs = floatArrayOf(5.0f, 1.7f)
     private val allpassFeedback = 0.5f
@@ -93,6 +92,6 @@ class ReverbEffect(
     }
 
     private fun clampDecay(value: Float) = value.coerceIn(0f, 0.95f)
+
     private fun clampMix(value: Float) = value.coerceIn(0f, 1f)
 }
-

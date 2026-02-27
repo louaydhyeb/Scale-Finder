@@ -15,7 +15,6 @@ import org.junit.Test
  * splash screen to finish before asserting on content.
  */
 class HomeScreenUiTest {
-
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 

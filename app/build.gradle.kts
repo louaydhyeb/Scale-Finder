@@ -1,10 +1,11 @@
-import java.util.Properties
 import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 // Load version from version.properties
@@ -45,7 +46,7 @@ android {
             isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // Use debug signing for CI builds (automatically created)
             // For production Play Store releases, configure proper signing
@@ -103,7 +104,6 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
 
-
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
@@ -116,4 +116,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+ktlint {
+    android.set(true)
+    ignoreFailures.set(false)
+}
+
+tasks.named("check") {
+    dependsOn("ktlintCheck")
 }

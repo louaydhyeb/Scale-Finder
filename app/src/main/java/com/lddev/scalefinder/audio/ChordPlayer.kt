@@ -5,11 +5,11 @@ import com.lddev.scalefinder.audio.engine.GuitarKarplusStrong
 import com.lddev.scalefinder.model.Chord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.pow
 
@@ -32,7 +32,10 @@ class ChordPlayer {
         private const val BASE_MIDI = 60
     }
 
-    fun playChord(chord: Chord, durationMs: Int = 1200) {
+    fun playChord(
+        chord: Chord,
+        durationMs: Int = 1200,
+    ) {
         stop()
 
         val frequencies = chordFrequencies(chord)
@@ -48,25 +51,26 @@ class ChordPlayer {
         engine.start()
 
         stopping.set(false)
-        val releaseJob = scope.launch {
-            voices.forEachIndexed { index, voice ->
-                if (stopping.get()) return@launch
-                voice.noteOn(frequencies[index])
-                if (index < voices.size - 1) delay(STRUM_DELAY_MS)
-            }
+        val releaseJob =
+            scope.launch {
+                voices.forEachIndexed { index, voice ->
+                    if (stopping.get()) return@launch
+                    voice.noteOn(frequencies[index])
+                    if (index < voices.size - 1) delay(STRUM_DELAY_MS)
+                }
 
-            delay(durationMs.toLong().coerceAtLeast(0L))
-            if (!stopping.get()) {
-                voices.forEach { it.noteOff() }
-                delay(TAIL_MS)
-                synchronized(activeVoices) {
-                    voices.forEach { voice ->
-                        engine.removeDsp(voice)
-                        activeVoices.remove(voice)
+                delay(durationMs.toLong().coerceAtLeast(0L))
+                if (!stopping.get()) {
+                    voices.forEach { it.noteOff() }
+                    delay(TAIL_MS)
+                    synchronized(activeVoices) {
+                        voices.forEach { voice ->
+                            engine.removeDsp(voice)
+                            activeVoices.remove(voice)
+                        }
                     }
                 }
             }
-        }
         synchronized(releaseJobs) {
             releaseJobs.add(releaseJob)
         }
@@ -110,7 +114,7 @@ class ChordPlayer {
         beatsPerBar: Int = 4,
         loop: Boolean = false,
         onChordStart: (Int) -> Unit = {},
-        onFinished: () -> Unit = {}
+        onFinished: () -> Unit = {},
     ) {
         stop()
         if (chords.isEmpty()) return
@@ -156,7 +160,10 @@ class ChordPlayer {
         val voices = frequencies.map { GuitarKarplusStrong(brightness = CHORD_BRIGHTNESS) }
 
         synchronized(activeVoices) {
-            voices.forEach { engine.addDsp(it); activeVoices.add(it) }
+            voices.forEach {
+                engine.addDsp(it)
+                activeVoices.add(it)
+            }
         }
 
         engine.start()
@@ -184,7 +191,7 @@ class ChordPlayer {
         chord: Chord,
         noteDurationMs: Int = 400,
         gapMs: Int = 100,
-        direction: String = "up"
+        direction: String = "up",
     ) {
         stop()
 
@@ -193,11 +200,12 @@ class ChordPlayer {
         val rootMidi = BASE_MIDI + chord.root.semitone
         val midiNotes = chord.quality.intervals.map { rootMidi + it }
 
-        val playOrder = when (direction.lowercase()) {
-            "down" -> midiNotes.reversed()
-            "both" -> midiNotes + midiNotes.reversed().drop(1)
-            else -> midiNotes
-        }
+        val playOrder =
+            when (direction.lowercase()) {
+                "down" -> midiNotes.reversed()
+                "both" -> midiNotes + midiNotes.reversed().drop(1)
+                else -> midiNotes
+            }
 
         val frequencies = playOrder.map { midiToFreq(it) }
 

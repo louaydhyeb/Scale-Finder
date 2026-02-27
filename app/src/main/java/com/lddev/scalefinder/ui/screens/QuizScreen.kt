@@ -58,41 +58,45 @@ import com.lddev.scalefinder.ui.components.quiz_components.GoldStar
 import com.lddev.scalefinder.ui.components.quiz_components.StatsCard
 import com.lddev.scalefinder.ui.components.quiz_components.WrongAnswerCard
 
-private val categoryIcons = mapOf(
-    QuizCategory.FRETBOARD_NOTE to Icons.Default.Create,
-    QuizCategory.DIATONIC_CHORD to Icons.Default.Star,
-    QuizCategory.SCALE_IDENTIFICATION to Icons.Default.Search,
-    QuizCategory.EAR_NOTE to Icons.Default.PlayArrow,
-    QuizCategory.EAR_CHORD to Icons.Default.PlayArrow,
-    QuizCategory.CHORD_VOICING to Icons.Default.Info
-)
+private val categoryIcons =
+    mapOf(
+        QuizCategory.FRETBOARD_NOTE to Icons.Default.Create,
+        QuizCategory.DIATONIC_CHORD to Icons.Default.Star,
+        QuizCategory.SCALE_IDENTIFICATION to Icons.Default.Search,
+        QuizCategory.EAR_NOTE to Icons.Default.PlayArrow,
+        QuizCategory.EAR_CHORD to Icons.Default.PlayArrow,
+        QuizCategory.CHORD_VOICING to Icons.Default.Info,
+    )
 
 @Composable
 fun QuizScreen(
     modifier: Modifier = Modifier,
-    vm: QuizViewModel = viewModel()
+    vm: QuizViewModel = viewModel(),
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
     ) {
         Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        brush = Brush.horizontalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
+            text =
+                buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            brush =
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.tertiary,
+                                    ),
+                                ),
+                            fontWeight = FontWeight.Bold,
                         ),
-                        fontWeight = FontWeight.Bold
-                    )
-                ) { append(stringResource(R.string.quiz_title)) }
-            },
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                    ) { append(stringResource(R.string.quiz_title)) }
+                },
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         )
 
         Spacer(Modifier.height(16.dp))
@@ -118,7 +122,7 @@ private fun QuizSetupContent(vm: QuizViewModel) {
             title = stringResource(category.titleRes),
             description = stringResource(category.descriptionRes),
             selected = category == vm.selectedCategory,
-            onClick = { vm.selectCategory(category) }
+            onClick = { vm.selectCategory(category) },
         )
         Spacer(Modifier.height(8.dp))
     }
@@ -153,7 +157,7 @@ private fun QuizSetupContent(vm: QuizViewModel) {
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(stringResource(R.string.quiz_timed_mode), style = MaterialTheme.typography.titleSmall)
         Switch(checked = vm.timedMode, onCheckedChange = { vm.toggleTimedMode() })
@@ -164,7 +168,7 @@ private fun QuizSetupContent(vm: QuizViewModel) {
     Stepper(
         label = stringResource(R.string.quiz_questions),
         value = vm.questionCount,
-        onChange = vm::updateQuestionCount
+        onChange = vm::updateQuestionCount,
     )
 
     Spacer(Modifier.height(16.dp))
@@ -179,7 +183,7 @@ private fun QuizSetupContent(vm: QuizViewModel) {
         Text(
             stringResource(R.string.quiz_total_quizzes, total),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -193,30 +197,31 @@ private fun QuizSessionContent(vm: QuizViewModel) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             stringResource(R.string.quiz_question_of, vm.currentQuestionIndex + 1, vm.questionCount),
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
         )
         if (vm.timedMode) {
-            val timerColor = when {
-                vm.timeRemaining > 10 -> MaterialTheme.colorScheme.onSurface
-                vm.timeRemaining > 5 -> MaterialTheme.colorScheme.tertiary
-                else -> MaterialTheme.colorScheme.error
-            }
+            val timerColor =
+                when {
+                    vm.timeRemaining > 10 -> MaterialTheme.colorScheme.onSurface
+                    vm.timeRemaining > 5 -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.error
+                }
             Text(
                 stringResource(R.string.quiz_time_remaining, vm.timeRemaining),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = timerColor
+                color = timerColor,
             )
         }
         Text(
             stringResource(R.string.quiz_score_label, vm.score),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 
@@ -224,10 +229,11 @@ private fun QuizSessionContent(vm: QuizViewModel) {
 
     LinearProgressIndicator(
         progress = { (vm.currentQuestionIndex + 1).toFloat() / vm.questionCount },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp)),
-        trackColor = MaterialTheme.colorScheme.surfaceVariant
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp)),
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
     )
 
     Spacer(Modifier.height(16.dp))
@@ -240,13 +246,14 @@ private fun QuizSessionContent(vm: QuizViewModel) {
         QuizCategory.FRETBOARD_NOTE -> {
             if (question.highlightString != null && question.highlightFret != null) {
                 FretboardCard(
-                    highlights = listOf(
-                        FretHighlight(
-                            stringIndex = question.highlightString,
-                            fret = question.highlightFret,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    )
+                    highlights =
+                        listOf(
+                            FretHighlight(
+                                stringIndex = question.highlightString,
+                                fret = question.highlightFret,
+                                color = MaterialTheme.colorScheme.primary,
+                            ),
+                        ),
                 )
                 Spacer(Modifier.height(12.dp))
             }
@@ -268,7 +275,7 @@ private fun QuizSessionContent(vm: QuizViewModel) {
                         Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         ChordDiagramView(voicing = question.chordVoicing)
                     }
@@ -285,7 +292,7 @@ private fun QuizSessionContent(vm: QuizViewModel) {
             isSelected = vm.selectedAnswerIndex == index,
             isCorrect = index == question.correctIndex,
             showResult = vm.hasAnswered,
-            onClick = { vm.selectAnswer(index) }
+            onClick = { vm.selectAnswer(index) },
         )
         if (index < question.choices.lastIndex) Spacer(Modifier.height(8.dp))
     }
@@ -293,21 +300,23 @@ private fun QuizSessionContent(vm: QuizViewModel) {
     if (vm.hasAnswered) {
         Spacer(Modifier.height(12.dp))
 
-        val feedbackText = when {
-            vm.isTimedOut -> stringResource(R.string.quiz_timed_out)
-            vm.selectedAnswerIndex == question.correctIndex -> stringResource(R.string.quiz_correct)
-            else -> stringResource(R.string.quiz_wrong, question.choices[question.correctIndex])
-        }
-        val feedbackColor = when {
-            vm.isTimedOut -> MaterialTheme.colorScheme.error
-            vm.selectedAnswerIndex == question.correctIndex -> CorrectGreen
-            else -> MaterialTheme.colorScheme.error
-        }
+        val feedbackText =
+            when {
+                vm.isTimedOut -> stringResource(R.string.quiz_timed_out)
+                vm.selectedAnswerIndex == question.correctIndex -> stringResource(R.string.quiz_correct)
+                else -> stringResource(R.string.quiz_wrong, question.choices[question.correctIndex])
+            }
+        val feedbackColor =
+            when {
+                vm.isTimedOut -> MaterialTheme.colorScheme.error
+                vm.selectedAnswerIndex == question.correctIndex -> CorrectGreen
+                else -> MaterialTheme.colorScheme.error
+            }
         Text(
             text = feedbackText,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = feedbackColor
+            color = feedbackColor,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -315,9 +324,11 @@ private fun QuizSessionContent(vm: QuizViewModel) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             OutlinedButton(onClick = { vm.nextQuestion() }) {
                 Text(
-                    if (vm.currentQuestionIndex < vm.questionCount - 1)
+                    if (vm.currentQuestionIndex < vm.questionCount - 1) {
                         stringResource(R.string.quiz_next)
-                    else stringResource(R.string.quiz_see_results)
+                    } else {
+                        stringResource(R.string.quiz_see_results)
+                    },
                 )
             }
         }
@@ -332,7 +343,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(24.dp))
 
@@ -340,11 +351,12 @@ private fun QuizResultsContent(vm: QuizViewModel) {
             imageVector = if (accuracy >= 70) Icons.Default.CheckCircle else Icons.Default.Info,
             contentDescription = stringResource(R.string.content_quiz_result),
             modifier = Modifier.size(64.dp),
-            tint = when {
-                accuracy >= 70 -> CorrectGreen
-                accuracy >= 40 -> MaterialTheme.colorScheme.tertiary
-                else -> MaterialTheme.colorScheme.error
-            }
+            tint =
+                when {
+                    accuracy >= 70 -> CorrectGreen
+                    accuracy >= 40 -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.error
+                },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -352,7 +364,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
         Text(
             stringResource(R.string.quiz_complete),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -361,23 +373,24 @@ private fun QuizResultsContent(vm: QuizViewModel) {
             stringResource(R.string.quiz_score_result, vm.score, vm.questionCount),
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
 
         Text(
             stringResource(R.string.quiz_accuracy, accuracy),
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(12.dp))
 
         LinearProgressIndicator(
             progress = { vm.score.toFloat() / vm.questionCount.coerceAtLeast(1) },
-            modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .clip(RoundedCornerShape(4.dp)),
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
+            modifier =
+                Modifier
+                    .fillMaxWidth(0.6f)
+                    .clip(RoundedCornerShape(4.dp)),
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
 
         Spacer(Modifier.height(12.dp))
@@ -386,14 +399,19 @@ private fun QuizResultsContent(vm: QuizViewModel) {
         if (vm.isNewBest) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(Icons.Default.Star, contentDescription = stringResource(R.string.content_new_best), tint = GoldStar, modifier = Modifier.size(24.dp))
+                Icon(
+                    Icons.Default.Star,
+                    contentDescription = stringResource(R.string.content_new_best),
+                    tint = GoldStar,
+                    modifier = Modifier.size(24.dp),
+                )
                 Text(
                     stringResource(R.string.quiz_new_best),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = GoldStar
+                    color = GoldStar,
                 )
                 Icon(Icons.Default.Star, contentDescription = null, tint = GoldStar, modifier = Modifier.size(24.dp))
             }
@@ -404,12 +422,12 @@ private fun QuizResultsContent(vm: QuizViewModel) {
             Text(
                 stringResource(R.string.quiz_your_best, stats.bestAccuracy),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 stringResource(R.string.quiz_your_avg, stats.averageAccuracy),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -418,7 +436,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
         Text(
             stringResource(vm.selectedCategory.titleRes),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(24.dp))
@@ -438,7 +456,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
         Spacer(Modifier.height(24.dp))
         SectionHeader(
             icon = Icons.Default.Close,
-            title = stringResource(R.string.quiz_review_wrong) + " (${wrongAnswers.size})"
+            title = stringResource(R.string.quiz_review_wrong) + " (${wrongAnswers.size})",
         )
         Spacer(Modifier.height(8.dp))
         wrongAnswers.forEach { answer ->
@@ -451,7 +469,7 @@ private fun QuizResultsContent(vm: QuizViewModel) {
             stringResource(R.string.quiz_all_correct),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = CorrectGreen
+            color = CorrectGreen,
         )
     }
 }

@@ -14,15 +14,14 @@ import com.lddev.scalefinder.model.Chord
 import com.lddev.scalefinder.model.ChordQuality
 import com.lddev.scalefinder.model.ChordVoicing
 import com.lddev.scalefinder.model.ChordVoicings
-import com.lddev.scalefinder.model.Note
 import com.lddev.scalefinder.model.FretboardTheme
+import com.lddev.scalefinder.model.Note
 import com.lddev.scalefinder.model.Scale
 import com.lddev.scalefinder.model.Tuning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
-
     companion object {
         const val DEFAULT_BPM = 120
         const val DEFAULT_TIME_SIGNATURE = 4
@@ -35,6 +34,7 @@ class HomeViewModel : ViewModel() {
         const val MIN_PROGRESSION_BPM = 40
         const val MAX_PROGRESSION_BPM = 240
     }
+
     // Audio engine init
     val engine = AudioEngine.instance
 
@@ -85,10 +85,11 @@ class HomeViewModel : ViewModel() {
 
     /** Voicings available for the currently selected chord */
     val selectedChordVoicings: List<ChordVoicing>
-        get() = selectedIndex?.let { idx ->
-            progression.getOrNull(idx)?.let { ChordVoicings.getVoicings(it) }
-        } ?: emptyList()
-    
+        get() =
+            selectedIndex?.let { idx ->
+                progression.getOrNull(idx)?.let { ChordVoicings.getVoicings(it) }
+            } ?: emptyList()
+
     val metronomeCurrentBeat = metronome.currentBeat
 
     fun addChord(chord: Chord) {
@@ -100,33 +101,39 @@ class HomeViewModel : ViewModel() {
         if (isPlayingProgression) stopProgression()
         if (index !in progression.indices) return
         progression.removeAt(index)
-        selectedIndex = when {
-            selectedIndex == index -> { selectedVoicing = null; null }
-            selectedIndex != null && selectedIndex!! > index -> selectedIndex!! - 1
-            else -> selectedIndex
-        }
+        selectedIndex =
+            when {
+                selectedIndex == index -> {
+                    selectedVoicing = null
+                    null
+                }
+                selectedIndex != null && selectedIndex!! > index -> selectedIndex!! - 1
+                else -> selectedIndex
+            }
     }
 
     fun moveLeft(index: Int) {
         if (index <= 0) return
         val c = progression.removeAt(index)
         progression.add(index - 1, c)
-        selectedIndex = when (selectedIndex) {
-            index -> index - 1
-            index - 1 -> index
-            else -> selectedIndex
-        }
+        selectedIndex =
+            when (selectedIndex) {
+                index -> index - 1
+                index - 1 -> index
+                else -> selectedIndex
+            }
     }
 
     fun moveRight(index: Int) {
         if (index >= progression.lastIndex) return
         val c = progression.removeAt(index)
         progression.add(index + 1, c)
-        selectedIndex = when (selectedIndex) {
-            index -> index + 1
-            index + 1 -> index
-            else -> selectedIndex
-        }
+        selectedIndex =
+            when (selectedIndex) {
+                index -> index + 1
+                index + 1 -> index
+                else -> selectedIndex
+            }
     }
 
     fun selectChord(index: Int) {
@@ -163,25 +170,45 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun setTuning(tuning: Tuning) { selectedTuning = tuning }
-    fun updateFretStart(value: Int) { fretStart = value.coerceIn(0, MAX_FRET) }
-    fun updateFretCount(value: Int) { fretCount = value.coerceIn(MIN_FRET_COUNT, MAX_FRET) }
-    fun toggleHighContrast() { highContrast = !highContrast }
-    fun toggleInvertFretboard() { invertFretboard = !invertFretboard }
-    fun toggleShowNoteNames() { showNoteNames = !showNoteNames }
-    fun updateFretboardTheme(theme: FretboardTheme) { fretboardTheme = theme }
-    
+    fun setTuning(tuning: Tuning) {
+        selectedTuning = tuning
+    }
+
+    fun updateFretStart(value: Int) {
+        fretStart = value.coerceIn(0, MAX_FRET)
+    }
+
+    fun updateFretCount(value: Int) {
+        fretCount = value.coerceIn(MIN_FRET_COUNT, MAX_FRET)
+    }
+
+    fun toggleHighContrast() {
+        highContrast = !highContrast
+    }
+
+    fun toggleInvertFretboard() {
+        invertFretboard = !invertFretboard
+    }
+
+    fun toggleShowNoteNames() {
+        showNoteNames = !showNoteNames
+    }
+
+    fun updateFretboardTheme(theme: FretboardTheme) {
+        fretboardTheme = theme
+    }
+
     // Metronome controls
-    fun updateMetronomeBPM(bpm: Int) { 
+    fun updateMetronomeBPM(bpm: Int) {
         metronomeBPM = bpm.coerceIn(MIN_METRONOME_BPM, MAX_METRONOME_BPM)
         metronome.setBPM(metronomeBPM)
     }
-    
-    fun updateMetronomeTimeSignature(beats: Int) { 
+
+    fun updateMetronomeTimeSignature(beats: Int) {
         metronomeTimeSignature = beats.coerceIn(MIN_BEATS, MAX_BEATS)
         metronome.setTimeSignature(metronomeTimeSignature)
     }
-    
+
     fun toggleMetronome() {
         isMetronomeRunning = !isMetronomeRunning
         if (isMetronomeRunning) {
@@ -225,7 +252,7 @@ class HomeViewModel : ViewModel() {
                     isPlayingProgression = false
                     currentPlayingChordIndex = -1
                 }
-            }
+            },
         )
     }
 
@@ -243,7 +270,10 @@ class HomeViewModel : ViewModel() {
         progression.addAll(preset.chords)
     }
 
-    fun applyFretPreset(start: Int, count: Int) {
+    fun applyFretPreset(
+        start: Int,
+        count: Int,
+    ) {
         updateFretStart(start)
         updateFretCount(count)
     }
@@ -258,7 +288,14 @@ class HomeViewModel : ViewModel() {
 }
 
 enum class ProgressionPreset(val chords: List<Chord>) {
-    POP(listOf(Chord(Note.C, ChordQuality.MAJOR), Chord(Note.G, ChordQuality.MAJOR), Chord(Note.A, ChordQuality.MINOR), Chord(Note.F, ChordQuality.MAJOR))),
+    POP(
+        listOf(
+            Chord(Note.C, ChordQuality.MAJOR),
+            Chord(Note.G, ChordQuality.MAJOR),
+            Chord(Note.A, ChordQuality.MINOR),
+            Chord(Note.F, ChordQuality.MAJOR),
+        ),
+    ),
     JAZZ(listOf(Chord(Note.A, ChordQuality.MINOR7), Chord(Note.D, ChordQuality.DOMINANT7), Chord(Note.G, ChordQuality.MAJOR7))),
-    BLUES(listOf(Chord(Note.A, ChordQuality.DOMINANT7), Chord(Note.D, ChordQuality.DOMINANT7), Chord(Note.E, ChordQuality.DOMINANT7)))
+    BLUES(listOf(Chord(Note.A, ChordQuality.DOMINANT7), Chord(Note.D, ChordQuality.DOMINANT7), Chord(Note.E, ChordQuality.DOMINANT7))),
 }

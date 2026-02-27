@@ -45,7 +45,7 @@ fun ChordVoicingSection(
     chord: Chord,
     voicings: List<ChordVoicing>,
     selectedVoicing: ChordVoicing?,
-    onShowOnNeck: (ChordVoicing) -> Unit
+    onShowOnNeck: (ChordVoicing) -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
         SectionHeader(
@@ -56,9 +56,9 @@ fun ChordVoicingSection(
                     chord.toString(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
-            }
+            },
         )
 
         Spacer(Modifier.height(8.dp))
@@ -68,7 +68,7 @@ fun ChordVoicingSection(
                 VoicingCard(
                     voicing = voicing,
                     isSelected = voicing == selectedVoicing,
-                    onShowOnNeck = { onShowOnNeck(voicing) }
+                    onShowOnNeck = { onShowOnNeck(voicing) },
                 )
             }
         }
@@ -79,39 +79,46 @@ fun ChordVoicingSection(
 private fun VoicingCard(
     voicing: ChordVoicing,
     isSelected: Boolean,
-    onShowOnNeck: () -> Unit
+    onShowOnNeck: () -> Unit,
 ) {
     val voicingCardDesc = stringResource(R.string.content_chord_voicing_card, voicing.name)
 
     var cardScale by remember { mutableFloatStateOf(0.9f) }
-    val scaleAnim = animateFloatAsState(
-        targetValue = cardScale,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "voicing_card_scale"
-    )
+    val scaleAnim =
+        animateFloatAsState(
+            targetValue = cardScale,
+            animationSpec =
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
+            label = "voicing_card_scale",
+        )
 
     LaunchedEffect(voicing) {
         delay(50)
     }
 
     OutlinedCard(
-        modifier = Modifier
-            .scale(scaleAnim.value)
-            .then(
-                if (isSelected) Modifier.border(
-                    2.dp,
-                    MaterialTheme.colorScheme.primary,
-                    MaterialTheme.shapes.medium
-                ) else Modifier
-            )
-            .semantics { contentDescription = voicingCardDesc }
+        modifier =
+            Modifier
+                .scale(scaleAnim.value)
+                .then(
+                    if (isSelected) {
+                        Modifier.border(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.shapes.medium,
+                        )
+                    } else {
+                        Modifier
+                    },
+                )
+                .semantics { contentDescription = voicingCardDesc },
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
         ) {
             ChordDiagramView(voicing = voicing)
 
@@ -121,10 +128,12 @@ private fun VoicingCard(
                 voicing.name,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
-                color = if (isSelected)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurface
+                color =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
             )
 
             Spacer(Modifier.height(6.dp))
@@ -132,19 +141,20 @@ private fun VoicingCard(
             val showOnNeckDesc = stringResource(R.string.content_show_voicing_on_neck)
             OutlinedButton(
                 onClick = onShowOnNeck,
-                modifier = Modifier
-                    .height(32.dp)
-                    .semantics { contentDescription = showOnNeckDesc }
+                modifier =
+                    Modifier
+                        .height(32.dp)
+                        .semantics { contentDescription = showOnNeckDesc },
             ) {
                 Icon(
                     Icons.Default.Settings,
                     contentDescription = null,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(14.dp),
                 )
                 Spacer(Modifier.size(4.dp))
                 Text(
                     stringResource(R.string.show_voicing_on_neck),
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
                 )
             }
         }
